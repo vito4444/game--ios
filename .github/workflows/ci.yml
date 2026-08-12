@@ -71,8 +71,8 @@ jobs:
           path: .tools/import.log
           if-no-files-found: warn
 
-  web:
-    name: Web export
+  exports:
+    name: Exports and packaged self-test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -98,6 +98,12 @@ jobs:
 
       - name: Export for the browser
         run: tools/export_web.sh
+
+      - name: Export for Linux and run the packaged build's self-test
+        # The suite runs against the source tree, where every file exists by
+        # definition. This runs inside the exported game, so it sees what the
+        # export filter actually packed.
+        run: tools/verify_export.sh
 
       - name: Upload playable build
         uses: actions/upload-artifact@v4

@@ -18,6 +18,12 @@ const AUTOSTART_FLAG := "--autostart"
 
 
 func _ready() -> void:
+	if SelfTest.requested():
+		# Runs inside the packaged game and exits with a status, so CI can tell
+		# whether the export actually contains its data.
+		get_tree().quit(0 if SelfTest.run().is_empty() else 1)
+		return
+
 	Audio.start_ambience()
 	_play.pressed.connect(_start_new)
 	_continue.pressed.connect(_resume)
