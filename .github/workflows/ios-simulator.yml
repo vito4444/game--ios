@@ -98,12 +98,17 @@ jobs:
       - name: Build for the simulator
         run: |
           set -o pipefail
+          # A generic destination, not the chosen device: the default Xcode on
+          # the runner carries an older SDK than the newest installed runtime,
+          # and naming a device from that runtime makes xcodebuild refuse the
+          # destination. Building against the SDK and running on a newer
+          # runtime is the normal forward-compatible case.
           xcodebuild \
             -project build/ios/DeepContract.xcodeproj \
             -scheme DeepContract \
             -configuration Release \
             -sdk iphonesimulator \
-            -destination "id=${{ steps.device.outputs.udid }}" \
+            -destination "generic/platform=iOS Simulator" \
             -derivedDataPath build/derived \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
