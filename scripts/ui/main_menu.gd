@@ -6,9 +6,10 @@ extends Control
 const GAME_SCENE := "res://scenes/game.tscn"
 const SETTINGS_SCENE := "res://scenes/ui/settings_screen.tscn"
 
-## Launch flag that skips the title screen. The simulator job uses it because
-## simctl cannot tap anything, and it is the only way an automated capture gets
-## past the menu into the game itself.
+## Skips the title screen when set. The simulator job uses it because simctl
+## cannot tap anything, and an environment variable is the only channel that
+## survives `simctl launch` - command-line arguments do not reach the app.
+const AUTOSTART_ENV := "DEEPCONTRACT_AUTOSTART"
 const AUTOSTART_FLAG := "--autostart"
 
 @onready var _play: Button = $Layout/Play
@@ -25,7 +26,8 @@ func _ready() -> void:
 	_continue.disabled = not SaveGame.exists()
 	(_continue if not _continue.disabled else _play).grab_focus()
 
-	if OS.get_cmdline_user_args().has(AUTOSTART_FLAG):
+	if OS.get_environment(AUTOSTART_ENV) == "1" \
+			or OS.get_cmdline_args().has(AUTOSTART_FLAG):
 		call_deferred("_start_new")
 
 

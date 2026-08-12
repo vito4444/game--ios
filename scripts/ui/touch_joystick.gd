@@ -78,12 +78,14 @@ func _notification(what: int) -> void:
 
 func _draw() -> void:
 	if not _active:
-		# A faint resting pad, so it is obvious the corner is draggable. A stick
-		# that only appears once you have already found it is no help.
+		# A resting pad, so it is obvious the corner is draggable. A stick that
+		# only appears once you have already found it is no help. Visible
+		# against the dark deck without competing with the game.
 		var resting := size * 0.5
-		draw_circle(resting, RADIUS, Color(Palette.ABYSS, 0.22))
-		draw_arc(resting, RADIUS, 0.0, TAU, 32, Color(Palette.HULL_LIGHT, 0.25), 2.0)
-		draw_circle(resting, KNOB_RADIUS, Color(Palette.HULL_LIGHT, 0.20))
+		draw_circle(resting, RADIUS, Color(Palette.ABYSS, 0.45))
+		draw_arc(resting, RADIUS, 0.0, TAU, 32, Color(Palette.HULL_HIGHLIGHT, 0.5), 2.0)
+		draw_circle(resting, KNOB_RADIUS, Color(Palette.HULL_LIGHT, 0.35))
+		draw_arc(resting, KNOB_RADIUS, 0.0, TAU, 24, Color(Palette.HULL_HIGHLIGHT, 0.4), 1.5)
 		return
 
 	var base := _origin - global_position

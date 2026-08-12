@@ -160,7 +160,10 @@ jobs:
           # simctl cannot tap, so the game is relaunched straight into a session.
           xcrun simctl terminate "$udid" "${{ env.BUNDLE_ID }}" || true
           sleep 2
-          xcrun simctl launch "$udid" "${{ env.BUNDLE_ID }}" --autostart
+          # SIMCTL_CHILD_ prefixed variables reach the app as its own
+          # environment; command-line arguments do not survive the trip.
+          SIMCTL_CHILD_DEEPCONTRACT_AUTOSTART=1 \
+            xcrun simctl launch "$udid" "${{ env.BUNDLE_ID }}"
           sleep 25
           xcrun simctl io "$udid" screenshot build/simulator-capture/02-in-game.png
 
@@ -169,7 +172,7 @@ jobs:
           # The game is landscape but a headless simulator has no accelerometer
           # to rotate the frame buffer, so the capture comes out on its side.
           for shot in build/simulator-capture/*.png; do
-            sips -r 90 "$shot" >/dev/null
+            sips -r 270 "$shot" >/dev/null
           done
           sips -g pixelWidth -g pixelHeight build/simulator-capture/02-in-game.png
 
