@@ -1,26 +1,42 @@
 # Deep Contract / 海渊契约
 
-A pixel-art escape simulation set on a deep-sea drilling platform, built with Godot 4.7.1 and
-targeting the iOS App Store.
+A pixel-art escape simulation set on a deep-sea drilling platform, built with
+Godot 4.7.1 and targeting the iOS App Store.
 
-You are a technician bound to Rig Abyss-9 by a contract that keeps renewing itself. The rig sits
-1,800 metres below the surface, so there is no fence to climb and no gate to walk through — the
-only way out is to build something that floats.
+You are a technician bound to Rig Abyss-9 by a contract that keeps renewing
+itself. The rig sits 1,800 metres below the surface, so there is no fence to
+climb and no gate to walk through — the only way out is to build something that
+floats.
 
-The game borrows its viewpoint and loop from The Escapists 1/2: a top-down 3/4 pixel view, a
-rigid daily schedule with roll calls, guard patrols with vision cones, contraband and shakedowns,
-crafting, stat training, and several independent escape routes. What it adds on top is the deep
-sea itself — oxygen bottles, pressurised compartments, and scheduled blackouts that briefly blind
-the rig's cameras.
+The viewpoint and loop follow The Escapists 1/2: a top-down 3/4 pixel view, a
+rigid daily schedule with roll calls, guard patrols with vision cones,
+contraband and shakedowns, crafting, stat training, and several independent
+escape routes. What it adds is the deep sea itself — oxygen bottles,
+pressurised compartments, and scheduled blackouts that briefly blind the rig's
+cameras.
+
+## What is in the game
+
+| System | Behaviour |
+| --- | --- |
+| Schedule | Ten blocks a day; two musters you are counted at. Missing one costs 25 suspicion |
+| Security | Officers patrol routes, see through a cone the tile grid resolves, chase, and escort you to a cell |
+| Contraband | Searches at musters, sweeps of the bunk pods, and confiscation on arrest |
+| Lockers | An open shelf that is always found, and a compartment behind the panel that sometimes is not |
+| Crafting | Five recipes, each gated on parts, a station and the Technical stat |
+| Work | Three assignments paying in proportion to the units actually worked, salvage included |
+| Stats | Conditioning (speed), Technical (recipes), Pressure (air) |
+| Deep sea | Oxygen outside the hull, pressure hatches, blackouts at 02:00 and 14:00 |
+| Escape | Rebuild the submersible, or board the supply sub in a stolen uniform |
 
 ## Requirements
 
 - [Godot 4.7.1-stable](https://godotengine.org/download) (no C#/Mono variant needed)
-- Python 3.10+ with [Pillow](https://pypi.org/project/Pillow/) — only to regenerate art and audio
+- Python 3.10+ with [Pillow](https://pypi.org/project/Pillow/), to regenerate art
 - Bash, curl, unzip
 
-`tools/get_godot.sh` downloads the pinned engine build into `.tools/` so local runs and CI use the
-exact same version. `.tools/` is gitignored.
+`tools/get_godot.sh` downloads the pinned engine build into `.tools/` so local
+runs and CI use the exact same version. `.tools/` is gitignored.
 
 ## Getting started
 
@@ -41,38 +57,65 @@ GODOT_BIN=/path/to/godot tools/run_tests.sh
 
 | Path | Contents |
 | --- | --- |
-| `scenes/` | Scene files, split into `world`, `ui`, `actors`, `systems` |
-| `scripts/` | GDScript, mirroring the scene split plus `core` for autoloads |
-| `data/` | Data-driven definitions: items, recipes, schedule, NPCs, jobs, escape routes |
+| `scenes/` | Scene files, split into `world`, `ui`, `actors` |
+| `scripts/` | GDScript: `core` for the session and autoloads, `systems` for rules, `actors`, `ui`, `world` |
+| `data/` | The rig layout, schedule, items, recipes, jobs, escape routes and translations |
 | `assets/generated/` | Art and audio produced by `tools/gen_art.py` and `tools/gen_audio.py` |
-| `tests/unit/` | GUT tests |
-| `tools/` | Toolchain and asset-generation scripts |
-| `fastlane/` | iOS signing and TestFlight delivery |
-| `docs/` | Design notes and the App Store submission checklist |
+| `tests/` | GUT tests: `unit` for rules, `integration` for the live scene |
+| `tools/` | Toolchain, asset generation and capture scripts |
+| `fastlane/`, `ios/` | Signing, delivery and the privacy manifest |
+| `docs/` | Design notes and the App Store submission guide |
 
-## Art pipeline
+## Tools
 
-Every sprite is generated procedurally by `tools/gen_art.py` from a fixed 16-colour palette, then
-committed to the repository. Nothing is sourced from third-party asset packs, so the project
-carries no attribution or licensing obligations. Regenerate with:
+| Script | Purpose |
+| --- | --- |
+| `tools/get_godot.sh [--templates]` | Fetch the pinned engine, and optionally the export templates |
+| `tools/check_import.sh` | Headless reimport; fails on any engine error |
+| `tools/compile_all.gd` | Load every script and scene; catches parse errors `--import` misses |
+| `tools/run_tests.sh` | The GUT suite |
+| `tools/gen_art.py [--check]` | Regenerate every sprite, or verify the committed ones are current |
+| `tools/gen_audio.py [--check]` | The same for sound effects |
+| `tools/export_web.sh` | Browser build, for playing a pull request |
+| `tools/export_ios.sh` | Xcode project for iOS |
+| `tools/capture_scenarios.gd` | Render staged gameplay moments, one language per run |
+| `tools/screenshot.gd` | Render a single scene to a PNG |
+
+## Data over code
+
+The rig layout, the timetable, items, recipes, jobs and escape routes are all
+plain text under `data/`, and each is validated on load rather than trusted.
+A row of the wrong width, a recipe naming an item that does not exist, a job
+whose pay does not divide evenly across its units, a patrol waypoint inside a
+wall — all of these are parse errors with a line to point at, not mysterious
+behaviour at run time.
+
+## Art and audio pipeline
+
+Every sprite and every sound is generated by code from a fixed 16-colour
+palette and a handful of oscillators. Nothing comes from an asset pack, so the
+project carries no attribution or licensing obligations. Output is
+byte-deterministic, and CI regenerates and diffs it.
 
 ```bash
 python3 tools/gen_art.py
+python3 tools/gen_audio.py
 ```
 
 ## Shipping to iOS
 
-Apple's toolchain only runs on macOS, so a Linux or Windows machine cannot produce an `.ipa`
-directly. This repository works around that by letting Godot export an Xcode project and having a
-GitHub Actions macOS runner do the signing and upload via fastlane:
+Godot exports a complete Xcode project on any operating system, so only the
+signing and packaging need macOS — and those run on a hosted runner:
 
 ```
-Godot (any OS) --> Xcode project --> macOS runner --> fastlane match/gym/pilot --> TestFlight
+Godot (Linux runner) --> Xcode project --> macOS runner --> fastlane --> TestFlight
 ```
 
-See [docs/APPSTORE.md](docs/APPSTORE.md) for the required secrets and the one-time setup.
+You do not need a Mac. You do need an Apple Developer Program membership.
+[docs/APPSTORE.md](docs/APPSTORE.md) covers the secrets, the one-time
+certificate setup, and the App Review answers.
 
 ## Licence
 
-Code and generated assets in this repository are original work. See `docs/APPSTORE.md` for
-third-party components bundled at build time (Godot engine, GUT).
+Code and generated assets in this repository are original work. Third-party
+components used at build time are the Godot engine and GUT, both MIT.

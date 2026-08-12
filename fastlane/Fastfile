@@ -1,0 +1,87 @@
+default_platform(:ios)
+
+# Signing and delivery. The Xcode project itself is produced by
+# tools/export_ios.sh, which runs anywhere; everything here needs macOS.
+#
+# Credentials come from the environment so nothing sensitive is committed. See
+# docs/APPSTORE.md for the list and where each one comes from.
+
+XCODE_PROJECT = "build/ios/DeepContract.xcodeproj".freeze
+SCHEME = "DeepContract".freeze
+
+def app_identifier
+  ENV.fetch("IOS_BUNDLE_ID", "com.example.deepcontract")
+end
+
+def connect_to_app_store
+  app_store_connect_api_key(
+    key_id: ENV.fetch("APPLE_API_KEY_ID"),
+    issuer_id: ENV.fetch("APPLE_API_ISSUER_ID"),
+    key_content: ENV.fetch("APPLE_API_KEY_CONTENT"),
+    is_key_content_base64: true,
+    in_house: false
+  )
+end
+
+platform :ios do
+  desc "Create or renew the App Store signing certificate and profile."
+  desc "Run this once by hand before the first build; it writes to the match repository."
+  lane :certificates do
+    connect_to_app_store
+    match(
+      type: "appstore",
+      app_identifier: app_identifier,
+      readonly: false
+    )
+  end
+
+  desc "Build a signed IPA and upload it to TestFlight."
+  lane :beta do
+    connect_to_app_store
+
+    # Read-only on CI: a build should never quietly mint new certificates.
+    match(
+      type: "appstore",
+      app_identifier: app_identifier,
+      readonly: true,
+      keychain_name: ENV["MATCH_KEYCHAIN_NAME"],
+      keychain_password: ENV["MATCH_KEYCHAIN_PASSWORD"]
+    )
+
+    build_app(
+      project: XCODE_PROJECT,
+      scheme: SCHEME,
+      configuration: "Release",
+      output_name: "DeepContract.ipa",
+      output_directory: "build/ipa",
+      export_method: "app-store",
+      clean: true,
+      export_options: {
+        provisioningProfiles: {
+          app_identifier => "match AppStore #{app_identifier}"
+        }
+      }
+    )
+
+    upload_to_testflight(
+      app_identifier: app_identifier,
+      skip_waiting_for_build_processing: true,
+      distribute_external: false
+    )
+  end
+
+  desc "Build a signed IPA without uploading. Useful for checking signing works."
+  lane :build_only do
+    connect_to_app_store
+    match(type: "appstore", app_identifier: app_identifier, readonly: true)
+    build_app(
+      project: XCODE_PROJECT,
+      scheme: SCHEME,
+      configuration: "Release",
+      output_name: "DeepContract.ipa",
+      output_directory: "build/ipa",
+      export_method: "app-store",
+      clean: true
+    )
+  end
+end

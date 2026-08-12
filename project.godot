@@ -15,6 +15,11 @@ config/description="Pixel-art escape simulation set on a deep-sea drilling platf
 config/version="0.1.0"
 run/main_scene="res://scenes/ui/main_menu.tscn"
 config/features=PackedStringArray("4.7", "Mobile")
+boot_splash/bg_color=Color(0.05098, 0.10588, 0.16471, 1)
+boot_splash/image="res://assets/generated/icons/launch_screen.png"
+boot_splash/fullsize=false
+boot_splash/use_filter=false
+config/icon="res://assets/generated/icons/app_icon.png"
 
 [audio]
 

@@ -35,6 +35,7 @@ from palette import (  # noqa: E402
     HULL_LIGHT,
     HULL_SHADOW,
     INK,
+    PALETTE,
     RUST,
     STEEL,
     STEEL_DARK,
@@ -956,6 +957,40 @@ def _write(path: Path, image: Image.Image, check_only: bool) -> bool:
     return True
 
 
+# Godot 4.7 builds the iOS asset catalogue from one 1024px master, plus the
+# dark and tinted variants iOS 18 asks for.
+ICON_SIZE = 1024
+LAUNCH_SCREEN_SIZE = (1536, 1536)
+
+
+def _scale_icon(source: Image.Image, size: int) -> Image.Image:
+    """Nearest-neighbour up to a whole multiple, then resample down.
+
+    Scaling 64px straight to 29px with a smooth filter turns the porthole into
+    mush; blowing it up first keeps the pixel edges recognisable.
+    """
+    multiple = max(1, -(-size // source.width))
+    blown_up = source.resize(
+        (source.width * multiple, source.height * multiple), Image.NEAREST
+    )
+    if blown_up.width == size:
+        return blown_up
+    return blown_up.resize((size, size), Image.LANCZOS)
+
+
+def build_launch_screen() -> Image.Image:
+    """Plain dark field with the porthole centred, matching the title screen."""
+    width, height = LAUNCH_SCREEN_SIZE
+    background = PALETTE[ABYSS]
+    canvas = Image.new("RGB", (width, height), background)
+
+    icon = build_app_icon().to_image().convert("RGB")
+    target = min(width, height) // 3
+    scaled = _scale_icon(icon, target)
+    canvas.paste(scaled, ((width - target) // 2, (height - target) // 2))
+    return canvas
+
+
 def generate(check_only: bool = False) -> int:
     ok = True
 
@@ -973,12 +1008,26 @@ def generate(check_only: bool = False) -> int:
 
     ok &= _write(OUT_ROOT / "ui" / "icons.png", build_icon_atlas().to_image(), check_only)
 
-    # App Store icons must be fully opaque and square, with no rounding applied.
-    app_icon = build_app_icon().to_image().convert("RGB")
-    app_icon = app_icon.resize((1024, 1024), Image.NEAREST)
-    ok &= _write(OUT_ROOT / "icons" / "app_icon.png", app_icon, check_only)
+    # App Store icons must be fully opaque and square, with no rounding applied:
+    # iOS masks the corners itself and rejects an alpha channel.
+    source = build_app_icon().to_image().convert("RGB")
+    master = _scale_icon(source, ICON_SIZE)
+    ok &= _write(OUT_ROOT / "icons" / "app_icon.png", master, check_only)
+    ok &= _write(OUT_ROOT / "icons" / "app_icon_dark.png", _darkened(master), check_only)
+    ok &= _write(OUT_ROOT / "icons" / "app_icon_tinted.png", _greyscale(master), check_only)
+    ok &= _write(OUT_ROOT / "icons" / "launch_screen.png", build_launch_screen(), check_only)
 
     return 0 if ok else 1
+
+
+def _darkened(image: Image.Image) -> Image.Image:
+    """iOS 18 dark-mode variant: the same art with the lights turned down."""
+    return Image.eval(image, lambda channel: int(channel * 0.55))
+
+
+def _greyscale(image: Image.Image) -> Image.Image:
+    """iOS 18 tinted variant, which the system recolours itself."""
+    return image.convert("L").convert("RGB")
 
 
 def main() -> int:

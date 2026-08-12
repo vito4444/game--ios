@@ -1,0 +1,120 @@
+name: iOS TestFlight
+
+# Manual only. Every run consumes macOS runner minutes, which bill at ten times
+# the Linux rate, and every successful run burns a TestFlight build number.
+on:
+  workflow_dispatch:
+    inputs:
+      upload:
+        description: "Upload to TestFlight (off means build and sign only)"
+        type: boolean
+        default: true
+
+env:
+  GODOT_VERSION: "4.7.1"
+  GODOT_RELEASE: "stable"
+
+jobs:
+  export:
+    name: Export the Xcode project
+    # Godot writes a complete Xcode project on any platform; only signing and
+    # packaging need Apple's toolchain.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache Godot toolchain
+        uses: actions/cache@v4
+        with:
+          path: .tools
+          key: godot-${{ runner.os }}-${{ env.GODOT_VERSION }}-${{ env.GODOT_RELEASE }}
+
+      - name: Cache export templates
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/godot/export_templates
+          key: godot-templates-${{ env.GODOT_VERSION }}-${{ env.GODOT_RELEASE }}
+
+      - name: Download Godot and export templates
+        run: tools/get_godot.sh --templates
+
+      - name: Import project
+        run: tools/check_import.sh
+
+      - name: Export for iOS
+        env:
+          IOS_BUNDLE_ID: ${{ secrets.IOS_BUNDLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          IOS_BUILD_NUMBER: ${{ github.run_number }}
+        run: tools/export_ios.sh
+
+      - name: Upload the Xcode project
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcode-project
+          path: build/ios
+          retention-days: 7
+
+  sign:
+    name: Sign and deliver
+    needs: export
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download the Xcode project
+        uses: actions/download-artifact@v4
+        with:
+          name: xcode-project
+          path: build/ios
+
+      - name: Check the signing credentials are present
+        id: credentials
+        env:
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+        run: |
+          if [ -z "$APPLE_API_KEY_ID" ] || [ -z "$MATCH_GIT_URL" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Apple credentials are not configured; skipping the signed build."
+            echo "::warning::See docs/APPSTORE.md for the list of secrets to add."
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Ruby
+        if: steps.credentials.outputs.ready == 'true'
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: Build, sign and upload
+        if: steps.credentials.outputs.ready == 'true'
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+          APPLE_API_KEY_CONTENT: ${{ secrets.APPLE_API_KEY_CONTENT }}
+          IOS_BUNDLE_ID: ${{ secrets.IOS_BUNDLE_ID }}
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+          FASTLANE_SKIP_UPDATE_CHECK: "1"
+          FASTLANE_HIDE_CHANGELOG: "1"
+        run: |
+          if [ "${{ inputs.upload }}" = "true" ]; then
+            bundle exec fastlane ios beta
+          else
+            bundle exec fastlane ios build_only
+          fi
+
+      - name: Upload the IPA
+        if: steps.credentials.outputs.ready == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ipa
+          path: build/ipa/*.ipa
+          retention-days: 7
