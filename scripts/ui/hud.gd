@@ -110,7 +110,6 @@ func _humanise(zone: StringName) -> String:
 
 func _on_suspicion_changed(value: int) -> void:
 	_suspicion_bar.value = value
-	_suspicion_bar.tooltip_text = "Suspicion %d%%" % value
 
 
 func _on_roll_call_started(event: Schedule.Event, deadline_minute: int) -> void:

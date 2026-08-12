@@ -9,6 +9,10 @@ extends RefCounted
 
 const ENABLE_ENV := "DEEPCONTRACT_AUTOSTART"
 
+## Separate switch: the probe draws over the game, so it is opt-in even
+## when diagnostics are on.
+const PROBE_ENV := "DEEPCONTRACT_PROBE"
+
 ## Written as well as printed: Godot's print goes to stdout, which `simctl
 ## launch` does not capture unless it stays in the foreground, so the file is
 ## the only way the CI job gets these back off the device.
@@ -94,7 +98,7 @@ static func report(world: RigWorld) -> void:
 ## is in the Node2D path. If neither shows, the texture never made it onto the
 ## device in a form the driver accepts. One capture answers which.
 static func attach_texture_probe(parent: Node) -> void:
-	if not enabled():
+	if OS.get_environment(PROBE_ENV) != "1":
 		return
 
 	var layer := CanvasLayer.new()
