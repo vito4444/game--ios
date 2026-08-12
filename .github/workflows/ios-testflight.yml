@@ -1,7 +1,9 @@
 name: iOS TestFlight
 
-# Manual only. Every run consumes macOS runner minutes, which bill at ten times
-# the Linux rate, and every successful run burns a TestFlight build number.
+# Manual only: every successful run consumes a TestFlight build number, and
+# uploading half-finished work to a beta channel is rarely what you want.
+# Unsigned simulator verification runs on every push instead, in
+# ios-simulator.yml, which needs no Apple account.
 on:
   workflow_dispatch:
     inputs:

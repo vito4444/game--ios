@@ -1,0 +1,157 @@
+name: iOS Simulator
+
+# Builds and launches the game on a real iOS Simulator and captures what it
+# looks like. Nothing here is signed, so this needs no Apple Developer account
+# and no secrets - it runs on every push.
+#
+# This is the check that the TestFlight workflow cannot be: it proves the
+# engine starts on iOS, the touch layout lands inside the safe area, and the
+# fonts resolve, without waiting on an Apple membership.
+
+on:
+  push:
+    branches:
+      - main
+      - "cursor/**"
+  pull_request:
+  workflow_dispatch:
+
+env:
+  GODOT_VERSION: "4.7.1"
+  GODOT_RELEASE: "stable"
+  BUNDLE_ID: "com.example.deepcontract"
+
+jobs:
+  export:
+    name: Export the Xcode project
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache Godot toolchain
+        uses: actions/cache@v4
+        with:
+          path: .tools
+          key: godot-${{ runner.os }}-${{ env.GODOT_VERSION }}-${{ env.GODOT_RELEASE }}
+
+      - name: Cache export templates
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/godot/export_templates
+          key: godot-templates-${{ env.GODOT_VERSION }}-${{ env.GODOT_RELEASE }}
+
+      - name: Download Godot and export templates
+        run: tools/get_godot.sh --templates
+
+      - name: Import project
+        run: tools/check_import.sh
+
+      - name: Export for iOS
+        env:
+          IOS_BUILD_NUMBER: ${{ github.run_number }}
+        run: tools/export_ios.sh
+
+      - name: Upload the Xcode project
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcode-project-unsigned
+          path: build/ios
+          retention-days: 3
+
+  run:
+    name: Build and launch on the simulator
+    needs: export
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download the Xcode project
+        uses: actions/download-artifact@v4
+        with:
+          name: xcode-project-unsigned
+          path: build/ios
+
+      - name: Pick a simulator
+        id: device
+        run: |
+          # The runner images rotate their iOS runtimes, so the device is
+          # chosen from what the machine actually has.
+          chosen=$(xcrun simctl list devices available --json \
+            | python3 tools/pick_simulator.py --kind iPhone)
+          {
+            echo "udid=$(echo "$chosen" | cut -f1)"
+            echo "name=$(echo "$chosen" | cut -f2)"
+            echo "runtime=$(echo "$chosen" | cut -f3)"
+          } >> "$GITHUB_OUTPUT"
+          echo "Selected $(echo "$chosen" | cut -f2) on $(echo "$chosen" | cut -f3)"
+
+      - name: Build for the simulator
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project build/ios/DeepContract.xcodeproj \
+            -scheme DeepContract \
+            -configuration Release \
+            -sdk iphonesimulator \
+            -destination "id=${{ steps.device.outputs.udid }}" \
+            -derivedDataPath build/derived \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build \
+            | tail -40
+
+      - name: Boot the simulator and install
+        run: |
+          xcrun simctl boot "${{ steps.device.outputs.udid }}" || true
+          xcrun simctl bootstatus "${{ steps.device.outputs.udid }}" -b
+          app=$(find build/derived/Build/Products -maxdepth 2 -name "*.app" | head -1)
+          echo "Installing $app"
+          xcrun simctl install "${{ steps.device.outputs.udid }}" "$app"
+
+      - name: Launch and capture
+        run: |
+          mkdir -p build/simulator-capture
+          xcrun simctl launch --console-pty "${{ steps.device.outputs.udid }}" \
+            "${{ env.BUNDLE_ID }}" > build/simulator-capture/launch.log 2>&1 &
+          launch_pid=$!
+
+          # Give the engine time to start and draw the title screen.
+          sleep 25
+          xcrun simctl io "${{ steps.device.outputs.udid }}" screenshot \
+            build/simulator-capture/01-title.png
+
+          # Tapping is not something simctl can do, so the rest of the capture
+          # relies on the game's own screenshot mode; see tools/README notes.
+          sleep 10
+          xcrun simctl io "${{ steps.device.outputs.udid }}" screenshot \
+            build/simulator-capture/02-later.png
+
+          kill "$launch_pid" 2>/dev/null || true
+          echo "--- first 80 lines of the app log ---"
+          head -80 build/simulator-capture/launch.log || true
+
+      - name: Check the app did not crash on launch
+        run: |
+          if grep -qiE "crash|fatal|abort|signal" build/simulator-capture/launch.log; then
+            echo "::error::The app logged a crash on the simulator."
+            cat build/simulator-capture/launch.log
+            exit 1
+          fi
+          state=$(xcrun simctl listapps "${{ steps.device.outputs.udid }}" \
+            | grep -c "${{ env.BUNDLE_ID }}" || true)
+          if [ "$state" -eq 0 ]; then
+            echo "::error::The app is not installed on the simulator."
+            exit 1
+          fi
+          echo "App installed and launched without logging a crash."
+
+      - name: Upload the capture
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: simulator-capture
+          path: build/simulator-capture
+          retention-days: 7

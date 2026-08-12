@@ -15,6 +15,12 @@ fi
 
 mkdir -p "$(dirname "${LOG_FILE}")"
 
+# Settling pass. project.godot names the .translation files that the locale CSV
+# importer produces, so on a fresh checkout the engine looks for them before it
+# has imported the CSV that creates them, and reports them missing. One import
+# resolves that; the pass that gets checked is the second one.
+"${GODOT_BIN}" --headless --import --path "${REPO_ROOT}" >/dev/null 2>&1 || true
+
 set +e
 "${GODOT_BIN}" --headless --import --path "${REPO_ROOT}" >"${LOG_FILE}" 2>&1
 IMPORT_STATUS=$?
