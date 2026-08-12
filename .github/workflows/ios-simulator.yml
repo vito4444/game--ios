@@ -131,42 +131,47 @@ jobs:
           echo "Installing $app"
           xcrun simctl install "${{ steps.device.outputs.udid }}" "$app"
 
-      - name: Launch and capture
+      - name: Launch and capture the title screen
         run: |
           mkdir -p build/simulator-capture
-          xcrun simctl launch --console-pty "${{ steps.device.outputs.udid }}" \
-            "${{ env.BUNDLE_ID }}" > build/simulator-capture/launch.log 2>&1 &
-          launch_pid=$!
+          udid="${{ steps.device.outputs.udid }}"
+          # Plain launch, not --console-pty: the latter stays in the foreground
+          # following the app's output and hangs the step.
+          xcrun simctl launch "$udid" "${{ env.BUNDLE_ID }}" | tee build/simulator-capture/launch.log
+          sleep 20
+          xcrun simctl io "$udid" screenshot build/simulator-capture/01-title.png
 
-          # Give the engine time to start and draw the title screen.
-          sleep 25
-          xcrun simctl io "${{ steps.device.outputs.udid }}" screenshot \
-            build/simulator-capture/01-title.png
-
-          # Tapping is not something simctl can do, so the rest of the capture
-          # relies on the game's own screenshot mode; see tools/README notes.
-          sleep 10
-          xcrun simctl io "${{ steps.device.outputs.udid }}" screenshot \
-            build/simulator-capture/02-later.png
-
-          kill "$launch_pid" 2>/dev/null || true
-          echo "--- first 80 lines of the app log ---"
-          head -80 build/simulator-capture/launch.log || true
-
-      - name: Check the app did not crash on launch
+      - name: Check the app is still running
         run: |
-          if grep -qiE "crash|fatal|abort|signal" build/simulator-capture/launch.log; then
-            echo "::error::The app logged a crash on the simulator."
-            cat build/simulator-capture/launch.log
+          udid="${{ steps.device.outputs.udid }}"
+          # A crash on launch leaves nothing running, which is the failure this
+          # whole job exists to catch.
+          if ! xcrun simctl spawn "$udid" launchctl list | grep -q "${{ env.BUNDLE_ID }}"; then
+            echo "::error::The app is not running - it crashed or exited on launch."
+            xcrun simctl spawn "$udid" log show --last 2m --predicate \
+              'process == "DeepContract"' --style compact | tail -60 || true
             exit 1
           fi
-          state=$(xcrun simctl listapps "${{ steps.device.outputs.udid }}" \
-            | grep -c "${{ env.BUNDLE_ID }}" || true)
-          if [ "$state" -eq 0 ]; then
-            echo "::error::The app is not installed on the simulator."
-            exit 1
-          fi
-          echo "App installed and launched without logging a crash."
+          echo "The app is running on $(sw_vers -productName) simulator."
+
+      - name: Capture the game itself
+        run: |
+          udid="${{ steps.device.outputs.udid }}"
+          # simctl cannot tap, so the game is relaunched straight into a session.
+          xcrun simctl terminate "$udid" "${{ env.BUNDLE_ID }}" || true
+          sleep 2
+          xcrun simctl launch "$udid" "${{ env.BUNDLE_ID }}" --autostart
+          sleep 25
+          xcrun simctl io "$udid" screenshot build/simulator-capture/02-in-game.png
+
+      - name: Turn the captures upright
+        run: |
+          # The game is landscape but a headless simulator has no accelerometer
+          # to rotate the frame buffer, so the capture comes out on its side.
+          for shot in build/simulator-capture/*.png; do
+            sips -r 90 "$shot" >/dev/null
+          done
+          sips -g pixelWidth -g pixelHeight build/simulator-capture/02-in-game.png
 
       - name: Upload the capture
         if: always()
