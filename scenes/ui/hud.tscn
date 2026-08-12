@@ -1,0 +1,105 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1_hud"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bar"]
+bg_color = Color(0.05098, 0.10588, 0.16471, 0.87843)
+border_width_bottom = 1
+border_color = Color(0.18039, 0.4353, 0.4941, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gauge_bg"]
+bg_color = Color(0.07451, 0.16471, 0.22745, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.41961, 0.40784, 0.50196, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gauge_fill"]
+bg_color = Color(0.85098, 0.30980, 0.23922, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_alert"]
+bg_color = Color(0.85098, 0.30980, 0.23922, 0.90196)
+content_margin_left = 10.0
+content_margin_top = 4.0
+content_margin_right = 10.0
+content_margin_bottom = 4.0
+
+[node name="Hud" type="CanvasLayer"]
+layer = 3
+script = ExtResource("1_hud")
+
+[node name="Bar" type="PanelContainer" parent="."]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 26.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_bar")
+
+[node name="Margin" type="MarginContainer" parent="Bar"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 3
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 3
+
+[node name="Row" type="HBoxContainer" parent="Bar/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Clock" type="Label" parent="Bar/Margin/Row"]
+custom_minimum_size = Vector2(104, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.90980, 0.90196, 0.87451, 1)
+theme_override_font_sizes/font_size = 13
+text = "Day 1  06:00"
+vertical_alignment = 1
+
+[node name="Activity" type="Label" parent="Bar/Margin/Row"]
+custom_minimum_size = Vector2(136, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94902, 0.65098, 0.35294, 1)
+theme_override_font_sizes/font_size = 13
+text = "Wake"
+vertical_alignment = 1
+
+[node name="Zone" type="Label" parent="Bar/Margin/Row"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.56078, 0.83922, 0.78824, 1)
+theme_override_font_sizes/font_size = 13
+text = "Bunk pods"
+vertical_alignment = 1
+
+[node name="SuspicionLabel" type="Label" parent="Bar/Margin/Row"]
+layout_mode = 2
+size_flags_horizontal = 10
+theme_override_colors/font_color = Color(0.65882, 0.64314, 0.72157, 1)
+theme_override_font_sizes/font_size = 13
+text = "SUSPICION"
+vertical_alignment = 1
+
+[node name="Suspicion" type="ProgressBar" parent="Bar/Margin/Row"]
+custom_minimum_size = Vector2(96, 12)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/background = SubResource("StyleBoxFlat_gauge_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_gauge_fill")
+show_percentage = false
+
+[node name="Alert" type="Label" parent="."]
+visible = false
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -190.0
+offset_top = 34.0
+offset_right = 190.0
+offset_bottom = 58.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.96863, 0.95294, 0.90980, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_alert")
+text = "MUSTER"
+horizontal_alignment = 1
+vertical_alignment = 1

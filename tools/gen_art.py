@@ -380,17 +380,21 @@ def console(s: Surface) -> None:
 
 
 def crate(s: Surface) -> None:
+    """Supply crate: plain steel with one hazard band, not a wall of chevrons."""
     s.rect(4, 6, 24, 24, STEEL_DARK)
     s.rect(5, 7, 22, 22, STEEL)
     s.frame(5, 7, 22, 22, STEEL_LIGHT)
-    for y in range(9, 27):
-        for x in range(7, 25):
-            if (x + y) % 8 < 4:
-                s.set(x, y, AMBER)
-            elif (x + y) % 8 < 5:
-                s.set(x, y, INK)
-    s.rect(10, 14, 12, 5, STEEL_DARK)
-    s.rect(11, 15, 10, 3, STEEL_LIGHT)
+    s.hline(5, 12, 22, STEEL_DARK)
+    s.hline(5, 24, 22, STEEL_DARK)
+
+    for y in range(14, 21):
+        for x in range(6, 26):
+            s.set(x, y, AMBER if (x - y) % 8 < 4 else INK)
+    s.hline(6, 14, 20, AMBER_DARK)
+    s.hline(6, 20, 20, AMBER_DARK)
+
+    s.rect(12, 8, 8, 3, STEEL_DARK)
+    s.rect(13, 9, 6, 1, STEEL_LIGHT)
     s.hline(4, 30, 24, HULL_SHADOW)
 
 

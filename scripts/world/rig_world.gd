@@ -7,6 +7,7 @@ const DEFAULT_MAP := "res://data/maps/abyss9.map"
 const PLAYER_SCENE := "res://scenes/actors/player.tscn"
 
 signal map_loaded(map: RigMap)
+signal session_started(session: Session)
 
 @onready var _ground: TileMapLayer = $Ground
 @onready var _props: TileMapLayer = $YSort/Props
@@ -14,6 +15,7 @@ signal map_loaded(map: RigMap)
 @onready var _camera: Camera2D = $Camera
 
 var map: RigMap
+var session: Session
 var player: Player
 
 
@@ -34,8 +36,23 @@ func load_map(path: String) -> bool:
 	_paint()
 	_spawn_player()
 	_configure_camera()
+	_start_session()
 	map_loaded.emit(map)
 	return true
+
+
+func _start_session() -> void:
+	session = Session.new(map)
+	for error in session.errors:
+		push_error("session: %s" % error)
+	session.bind_player_locator(player_zone)
+	session_started.emit(session)
+
+
+func player_zone() -> StringName:
+	if player == null or session == null:
+		return &""
+	return session.zone_at_position(player.global_position)
 
 
 func _paint() -> void:
@@ -77,7 +94,9 @@ func _configure_camera() -> void:
 	_follow_player()
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	if session != null:
+		session.tick(delta)
 	_follow_player()
 
 
