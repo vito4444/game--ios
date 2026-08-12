@@ -58,41 +58,55 @@ const PROPS_ORDER: Array[StringName] = [
 	&"pipe_vertical",
 ]
 
-## Ground characters. `solid` blocks movement.
+## Ground characters. `solid` blocks movement, `blocks_sight` breaks a guard's
+## line of sight. Doors block both while shut; a porthole blocks movement but
+## not the view through it.
 const GROUND_SYMBOLS := {
-	"#": {"tile": &"wall_hull", "solid": true},
-	"W": {"tile": &"wall_window", "solid": true},
-	"A": {"tile": &"wall_alarm", "solid": true},
-	"V": {"tile": &"vent", "solid": true},
-	".": {"tile": &"floor_grate", "solid": false},
-	",": {"tile": &"floor_tile", "solid": false},
-	":": {"tile": &"floor_concrete", "solid": false},
-	"~": {"tile": &"floor_wet", "solid": false},
-	"!": {"tile": &"floor_restricted", "solid": false},
-	"o": {"tile": &"moonpool", "solid": true},
-	"D": {"tile": &"door_closed", "solid": true},
-	"H": {"tile": &"hatch_closed", "solid": true},
+	"#": {"tile": &"wall_hull", "solid": true, "blocks_sight": true},
+	"W": {"tile": &"wall_window", "solid": true, "blocks_sight": true},
+	"A": {"tile": &"wall_alarm", "solid": true, "blocks_sight": true},
+	"V": {"tile": &"vent", "solid": true, "blocks_sight": true},
+	".": {"tile": &"floor_grate", "solid": false, "blocks_sight": false},
+	",": {"tile": &"floor_tile", "solid": false, "blocks_sight": false},
+	":": {"tile": &"floor_concrete", "solid": false, "blocks_sight": false},
+	"~": {"tile": &"floor_wet", "solid": false, "blocks_sight": false},
+	"!": {"tile": &"floor_restricted", "solid": false, "blocks_sight": false},
+	"o": {"tile": &"moonpool", "solid": true, "blocks_sight": false},
+	"D": {"tile": &"door_closed", "solid": true, "blocks_sight": true, "door": POWERED_DOOR},
+	"H": {"tile": &"hatch_closed", "solid": true, "blocks_sight": true, "door": PRESSURE_HATCH},
 }
 
-## Prop characters. Lamps hang from the ceiling and pipes run along the deck,
-## so neither blocks the player.
+## Doors slide open when someone who can open them stands next to them. Powered
+## doors answer to anyone; pressure hatches only to security, until the player
+## finds another way through.
+const POWERED_DOOR := &"powered"
+const PRESSURE_HATCH := &"pressure"
+
+const DOOR_OPEN_TILE := {
+	POWERED_DOOR: &"door_open",
+	PRESSURE_HATCH: &"hatch_open",
+}
+
+## Prop characters. Height decides sight: a locker or a stacked crate hides the
+## player, a bunk or a table does not. Lamps hang from the ceiling and pipes run
+## along the deck, so neither blocks anything.
 const PROP_SYMBOLS := {
-	"b": {"tile": &"bunk", "solid": true},
-	"l": {"tile": &"locker", "solid": true},
-	"t": {"tile": &"workbench", "solid": true},
-	"c": {"tile": &"console", "solid": true},
-	"x": {"tile": &"crate", "solid": true},
-	"T": {"tile": &"table", "solid": true},
-	"h": {"tile": &"chair", "solid": true},
-	"L": {"tile": &"lamp", "solid": false},
-	"g": {"tile": &"conditioning_rig", "solid": true},
-	"e": {"tile": &"technical_terminal", "solid": true},
-	"p": {"tile": &"pressure_chamber", "solid": true},
-	"m": {"tile": &"market_crate", "solid": true},
-	"d": {"tile": &"drive_component", "solid": false},
-	"G": {"tile": &"hangar_door", "solid": true},
-	"=": {"tile": &"pipe_horizontal", "solid": false},
-	"|": {"tile": &"pipe_vertical", "solid": false},
+	"b": {"tile": &"bunk", "solid": true, "blocks_sight": false},
+	"l": {"tile": &"locker", "solid": true, "blocks_sight": true},
+	"t": {"tile": &"workbench", "solid": true, "blocks_sight": false},
+	"c": {"tile": &"console", "solid": true, "blocks_sight": false},
+	"x": {"tile": &"crate", "solid": true, "blocks_sight": true},
+	"T": {"tile": &"table", "solid": true, "blocks_sight": false},
+	"h": {"tile": &"chair", "solid": true, "blocks_sight": false},
+	"L": {"tile": &"lamp", "solid": false, "blocks_sight": false},
+	"g": {"tile": &"conditioning_rig", "solid": true, "blocks_sight": true},
+	"e": {"tile": &"technical_terminal", "solid": true, "blocks_sight": false},
+	"p": {"tile": &"pressure_chamber", "solid": true, "blocks_sight": true},
+	"m": {"tile": &"market_crate", "solid": true, "blocks_sight": true},
+	"d": {"tile": &"drive_component", "solid": false, "blocks_sight": false},
+	"G": {"tile": &"hangar_door", "solid": true, "blocks_sight": true},
+	"=": {"tile": &"pipe_horizontal", "solid": false, "blocks_sight": false},
+	"|": {"tile": &"pipe_vertical", "solid": false, "blocks_sight": false},
 }
 
 
@@ -118,3 +132,12 @@ static func ground_entry(symbol: String) -> Dictionary:
 
 static func prop_entry(symbol: String) -> Dictionary:
 	return PROP_SYMBOLS.get(symbol, {})
+
+
+## &"" when the symbol is not a door.
+static func door_kind(symbol: String) -> StringName:
+	return ground_entry(symbol).get("door", &"")
+
+
+static func open_tile_for(kind: StringName) -> StringName:
+	return DOOR_OPEN_TILE.get(kind, &"door_open")

@@ -21,6 +21,18 @@ class Zone:
 		return rect.has_point(cell)
 
 
+class Patrol:
+	var id: StringName
+	var waypoints: Array[Vector2i]
+
+	func _init(patrol_id: StringName, cells: Array[Vector2i]) -> void:
+		id = patrol_id
+		waypoints = cells
+
+	func start() -> Vector2i:
+		return waypoints[0] if not waypoints.is_empty() else Vector2i.ZERO
+
+
 var map_name: String = ""
 var width: int = 0
 var height: int = 0
@@ -28,6 +40,7 @@ var spawn: Vector2i = Vector2i.ZERO
 var ground: PackedStringArray = PackedStringArray()
 var props: PackedStringArray = PackedStringArray()
 var zones: Array[Zone] = []
+var patrols: Array[Patrol] = []
 var errors: PackedStringArray = PackedStringArray()
 
 
@@ -61,14 +74,62 @@ func prop_symbol(cell: Vector2i) -> String:
 	return props[cell.y][cell.x]
 
 
+## Cells a door has currently opened. Kept on the map rather than only in the
+## tilemap so sight, pathing and collision all read the same fact.
+var _opened: Dictionary = {}
+
+
+func set_cell_opened(cell: Vector2i, opened: bool) -> void:
+	if opened:
+		_opened[cell] = true
+	else:
+		_opened.erase(cell)
+
+
+func is_cell_opened(cell: Vector2i) -> bool:
+	return _opened.has(cell)
+
+
 func is_solid(cell: Vector2i) -> bool:
 	## Out of bounds counts as solid so the player cannot leave the hull.
 	if not in_bounds(cell):
 		return true
+	if _opened.has(cell):
+		return false
 	var ground_entry := TileCatalog.ground_entry(ground_symbol(cell))
 	if ground_entry.get("solid", false):
 		return true
 	return TileCatalog.prop_entry(prop_symbol(cell)).get("solid", false)
+
+
+func door_kind(cell: Vector2i) -> StringName:
+	if not in_bounds(cell):
+		return &""
+	return TileCatalog.door_kind(ground_symbol(cell))
+
+
+func is_door(cell: Vector2i) -> bool:
+	return door_kind(cell) != &""
+
+
+func door_cells() -> Array[Vector2i]:
+	var found: Array[Vector2i] = []
+	for y in height:
+		for x in width:
+			var cell := Vector2i(x, y)
+			if is_door(cell):
+				found.append(cell)
+	return found
+
+
+func blocks_sight(cell: Vector2i) -> bool:
+	if not in_bounds(cell):
+		return true
+	if _opened.has(cell):
+		return false
+	if TileCatalog.ground_entry(ground_symbol(cell)).get("blocks_sight", false):
+		return true
+	return TileCatalog.prop_entry(prop_symbol(cell)).get("blocks_sight", false)
 
 
 func zone_at(cell: Vector2i) -> Zone:
@@ -125,6 +186,8 @@ func _parse(text: String) -> void:
 				_parse_spawn(line)
 			"zones":
 				_parse_zone(line)
+			"patrols":
+				_parse_patrol(line)
 			_:
 				errors.append("unknown section: %s" % section)
 
@@ -182,6 +245,28 @@ func _parse_zone(line: String) -> void:
 	)
 
 
+func _parse_patrol(line: String) -> void:
+	var parts := line.split("=", true, 1)
+	if parts.size() != 2:
+		errors.append("malformed patrol line: %s" % line)
+		return
+	var cells: Array[Vector2i] = []
+	for token in parts[1].strip_edges().split(" ", false):
+		var coords := token.split(",")
+		if coords.size() != 2:
+			errors.append("patrol waypoint needs x,y: %s" % token)
+			continue
+		cells.append(Vector2i(coords[0].to_int(), coords[1].to_int()))
+	patrols.append(Patrol.new(StringName(parts[0].strip_edges()), cells))
+
+
+func patrol_by_id(id: StringName) -> Patrol:
+	for patrol in patrols:
+		if patrol.id == id:
+			return patrol
+	return null
+
+
 func _validate() -> void:
 	if width <= 0 or height <= 0:
 		errors.append("width and height must be positive")
@@ -213,3 +298,12 @@ func _validate() -> void:
 		errors.append("spawn %s is outside the map" % spawn)
 	elif is_solid(spawn):
 		errors.append("spawn %s is inside a solid tile" % spawn)
+
+	for patrol in patrols:
+		if patrol.waypoints.size() < 2:
+			errors.append("patrol %s needs at least two waypoints" % patrol.id)
+		for waypoint in patrol.waypoints:
+			if not in_bounds(waypoint):
+				errors.append("patrol %s waypoint %s is off the map" % [patrol.id, waypoint])
+			elif is_solid(waypoint):
+				errors.append("patrol %s waypoint %s is inside a wall" % [patrol.id, waypoint])

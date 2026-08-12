@@ -5,6 +5,7 @@ extends Node2D
 
 const DEFAULT_MAP := "res://data/maps/abyss9.map"
 const PLAYER_SCENE := "res://scenes/actors/player.tscn"
+const OFFICER_SCENE := "res://scenes/actors/security_officer.tscn"
 
 signal map_loaded(map: RigMap)
 signal session_started(session: Session)
@@ -17,6 +18,7 @@ signal session_started(session: Session)
 var map: RigMap
 var session: Session
 var player: Player
+var officers: Array[SecurityOfficer] = []
 
 
 func _ready() -> void:
@@ -46,7 +48,54 @@ func _start_session() -> void:
 	for error in session.errors:
 		push_error("session: %s" % error)
 	session.bind_player_locator(player_zone)
+	session.player_detained.connect(_on_player_detained)
+	session.player_released.connect(_on_player_released)
+	session.doors.door_opened.connect(_repaint_door)
+	session.doors.door_closed.connect(_repaint_door)
+	_spawn_officers()
 	session_started.emit(session)
+
+
+func _repaint_door(cell: Vector2i) -> void:
+	var kind := session.doors.kind_at(cell)
+	if kind == &"":
+		kind = map.door_kind(cell)
+	var tile: StringName = (
+		TileCatalog.open_tile_for(kind)
+		if session.doors.is_open(cell)
+		else TileCatalog.ground_entry(map.ground_symbol(cell))["tile"]
+	)
+	_ground.set_cell(cell, TileCatalog.SOURCE_TERRAIN, TileCatalog.terrain_coords(tile))
+
+
+func _update_doors() -> void:
+	var approaches: Array[Dictionary] = []
+	if player != null and session.player_state.state != PlayerState.SOLITARY:
+		approaches.append({"cell": Vector2(player.cell()), "staff": false})
+	for officer in officers:
+		approaches.append({"cell": Vector2(officer.cell()), "staff": true})
+	session.doors.update(approaches)
+
+
+func _spawn_officers() -> void:
+	for officer in officers:
+		officer.queue_free()
+	officers.clear()
+
+	var scene := load(OFFICER_SCENE) as PackedScene
+	for patrol in map.patrols:
+		var officer := scene.instantiate() as SecurityOfficer
+		_actors.add_child(officer)
+		officer.setup(session, session.navigation, player, patrol)
+		officers.append(officer)
+
+
+func _on_player_detained(_reason: String, _confiscated: Array) -> void:
+	player.global_position = map.cell_centre(session.solitary_cell())
+
+
+func _on_player_released() -> void:
+	player.global_position = map.cell_centre(session.quarters_cell())
 
 
 func player_zone() -> StringName:
@@ -97,6 +146,7 @@ func _configure_camera() -> void:
 func _process(delta: float) -> void:
 	if session != null:
 		session.tick(delta)
+		_update_doors()
 	_follow_player()
 
 

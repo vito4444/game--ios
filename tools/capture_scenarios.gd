@@ -17,7 +17,7 @@ const SCENARIOS := [
 	{"name": "bunk_pods", "cell": Vector2i(3, 3), "minute": 6 * 60, "suspicion": 0},
 	{"name": "muster_deck", "cell": Vector2i(21, 18), "minute": 8 * 60 + 5, "suspicion": 25},
 	{"name": "galley", "cell": Vector2i(20, 4), "minute": 12 * 60 + 10, "suspicion": 10},
-	{"name": "corridor", "cell": Vector2i(20, 11), "minute": 14 * 60, "suspicion": 40},
+	{"name": "corridor_patrol", "cell": Vector2i(8, 11), "minute": 14 * 60, "suspicion": 40},
 	{"name": "moon_pool", "cell": Vector2i(24, 27), "minute": 16 * 60, "suspicion": 60},
 	{"name": "hangar", "cell": Vector2i(8, 29), "minute": 22 * 60 + 30, "suspicion": 85},
 ]

@@ -70,6 +70,7 @@ func test_zones_cover_the_expected_rooms() -> void:
 			"moon_pool",
 			"muster_deck",
 			"security_office",
+			"solitary",
 			"training_bay",
 			"workshop",
 		]
