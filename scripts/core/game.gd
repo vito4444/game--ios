@@ -21,6 +21,8 @@ func _ready() -> void:
 	interaction_panel.bind(rig)
 	outcome_screen.bind(rig)
 	_restore()
+	# Runs only under the automated capture flag.
+	Diagnostics.report(rig)
 
 
 func _notification(what: int) -> void:

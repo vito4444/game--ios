@@ -167,6 +167,16 @@ jobs:
           sleep 25
           xcrun simctl io "$udid" screenshot build/simulator-capture/02-in-game.png
 
+      - name: Collect the device log
+        if: always()
+        run: |
+          udid="${{ steps.device.outputs.udid }}"
+          xcrun simctl spawn "$udid" log show --last 3m \
+            --predicate 'process == "DeepContract"' --style compact \
+            > build/simulator-capture/device.log 2>&1 || true
+          echo "--- diagnostics reported by the game ---"
+          grep "\[diag\]" build/simulator-capture/device.log || echo "(none)"
+
       - name: Turn the captures upright
         run: |
           # The game is landscape but a headless simulator has no accelerometer
