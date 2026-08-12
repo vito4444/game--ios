@@ -9,13 +9,14 @@ extends RefCounted
 signal changed(state: StringName)
 signal arrested(reason: String)
 signal released()
+signal escaped()
 
 const FREE := &"free"
 const PURSUED := &"pursued"
 const ESCORTED := &"escorted"
 const SOLITARY := &"solitary"
 const UNCONSCIOUS := &"unconscious"
-const ESCAPED := &"escaped"
+const ESCAPE_SUCCESS := &"escape_success"
 
 ## How long a stint in the solitary cell lasts, in game minutes.
 const SOLITARY_MINUTES := 240
@@ -65,6 +66,15 @@ func serve_time(minutes: int) -> void:
 	if solitary_minutes_remaining == 0:
 		state = FREE
 		released.emit()
+
+
+func escape() -> void:
+	state = ESCAPE_SUCCESS
+	escaped.emit()
+
+
+func has_escaped() -> bool:
+	return state == ESCAPE_SUCCESS
 
 
 func knock_out() -> void:

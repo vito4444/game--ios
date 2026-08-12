@@ -38,5 +38,11 @@ func facing_direction() -> Vector2:
 	return CharacterSprite.direction_of(_sprite.facing)
 
 
+## Turns on the spot. Used after a teleport, and by staged scenes, so the
+## player is not left facing the wall they arrived through.
+func face(direction: Vector2) -> void:
+	_sprite.facing = CharacterSprite.facing_for(direction)
+
+
 func cell() -> Vector2i:
 	return Vector2i((global_position / Vector2(TileCatalog.TILE_SIZE)).floor())

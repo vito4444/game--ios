@@ -14,9 +14,14 @@ const SCHEDULE_PATH := "res://data/schedule/daily.json"
 const ITEMS_PATH := "res://data/items/items.json"
 const RECIPES_PATH := "res://data/recipes/recipes.json"
 const JOBS_PATH := "res://data/jobs/jobs.json"
+const ROUTES_PATH := "res://data/routes/routes.json"
 
 ## The assignment a new contract starts on.
 const STARTING_JOB := &"welding"
+
+## Security keep a spare uniform in their own locker room. Stealing it is the
+## first step of the supply-sub route, and the reason to risk the office at all.
+const SEEDED_UNIFORM_ZONE := &"security_office"
 
 ## Rig time when a new contract starts: woken for the first shift.
 const START_MINUTE_OF_DAY := 6 * 60
@@ -40,6 +45,11 @@ var shakedown: Shakedown
 var wallet: Wallet
 var jobs: JobBoard
 var market: Market
+var escape_routes: EscapeRoutes
+
+## Counters the outcome screen reports on.
+var times_detained: int = 0
+var times_searched: int = 0
 var player_state: PlayerState
 var stashes: Dictionary = {}
 var errors: PackedStringArray = PackedStringArray()
@@ -80,8 +90,13 @@ func _init(
 
 	market = Market.new(items, inventory, wallet)
 
+	escape_routes = EscapeRoutes.load_from(ROUTES_PATH, inventory, player_state, items)
+	errors.append_array(escape_routes.errors)
+
 	_build_stashes()
+	_seed_security_uniform()
 	shakedown = Shakedown.new(inventory, suspicion, stashes, search_seed)
+	shakedown.player_searched.connect(_on_player_searched)
 
 	clock.minute_passed.connect(_on_minute_passed)
 	roll_call.attended.connect(_on_muster_attended)
@@ -97,8 +112,23 @@ func _build_stashes() -> void:
 				stashes[cell] = Stash.new(items, cell)
 
 
+func _seed_security_uniform() -> void:
+	var office := map.zone_by_id(SEEDED_UNIFORM_ZONE)
+	if office == null:
+		return
+	for cell in stashes:
+		if office.contains(cell):
+			(stashes[cell] as Stash).store(&"officer_uniform")
+			return
+
+
 func stash_at(cell: Vector2i) -> Stash:
 	return stashes.get(cell)
+
+
+## Attempts to leave the rig from where the player is standing.
+func attempt_escape(zone: StringName, prop: StringName) -> EscapeRoutes.Result:
+	return escape_routes.attempt(zone, prop, clock.minute_of_day())
 
 
 func is_valid() -> bool:
@@ -138,8 +168,13 @@ func quarters_cell() -> Vector2i:
 func detain_player(reason: String) -> Array[StringName]:
 	var taken := inventory.confiscate_contraband()
 	player_state.send_to_solitary(reason)
+	times_detained += 1
 	player_detained.emit(reason, taken)
 	return taken
+
+
+func _on_player_searched(_seized: Array) -> void:
+	times_searched += 1
 
 
 func _on_minute_passed(_minute_of_day: int, _day: int) -> void:

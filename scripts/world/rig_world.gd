@@ -57,6 +57,8 @@ func _on_interact() -> void:
 			_train(target)
 		Interaction.Kind.WORK:
 			_work(target)
+		Interaction.Kind.ESCAPE:
+			_attempt_escape(target)
 		Interaction.Kind.CRAFT:
 			# A workbench is the welding post as well as a crafting station, so
 			# during a shift the job takes precedence over private projects.
@@ -66,6 +68,24 @@ func _on_interact() -> void:
 			pass
 		_:
 			interaction_requested.emit(target)
+
+
+func _attempt_escape(target: Interaction.Target) -> void:
+	var result := session.attempt_escape(player_zone(), target.prop)
+	if result == EscapeRoutes.Result.OK:
+		return
+
+	var route := session.escape_routes.route_at(player_zone(), target.prop)
+	if result == EscapeRoutes.Result.MISSING_KIT and route != null:
+		var names: PackedStringArray = PackedStringArray()
+		for id in session.escape_routes.missing_for(route):
+			names.append(session.items.display_name(id))
+		notice.emit("Still need: %s" % ", ".join(names))
+		return
+	if result == EscapeRoutes.Result.OUTSIDE_WINDOW and route != null:
+		notice.emit("Nothing is due until %s." % route.window_text())
+		return
+	notice.emit(EscapeRoutes.reason_for(result))
 
 
 ## Returns true when this counted as a unit of the player's shift.

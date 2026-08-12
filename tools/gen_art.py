@@ -524,6 +524,26 @@ def hangar_door(s: Surface) -> None:
     s.rect(12, 14, 8, 4, ALARM)
 
 
+def sub_dock(s: Surface) -> None:
+    """Boarding gantry at the moon pool: where the supply sub ties up."""
+    s.rect(2, 4, 28, 4, STEEL_DARK)
+    s.rect(3, 5, 26, 2, STEEL_LIGHT)
+    s.rect(2, 24, 28, 4, STEEL_DARK)
+    s.rect(3, 25, 26, 2, STEEL)
+
+    for x in range(4, 28, 5):
+        s.rect(x, 8, 3, 16, STEEL)
+        s.rect(x, 8, 3, 1, STEEL_LIGHT)
+        s.rect(x, 23, 3, 1, HULL_SHADOW)
+
+    for x in (1, 30):
+        s.rect(x, 2, 2, 26, STEEL_DARK)
+        s.rect(x, 2, 2, 2, AMBER)
+    s.rect(13, 0, 6, 3, AMBER)
+    s.rect(14, 1, 4, 1, INK)
+    s.hline(2, 28, 28, HULL_SHADOW)
+
+
 PROP_TILES: tuple[tuple[str, Callable[[Surface], None]], ...] = (
     ("bunk", bunk),
     ("locker", locker),
@@ -541,6 +561,7 @@ PROP_TILES: tuple[tuple[str, Callable[[Surface], None]], ...] = (
     ("hangar_door", hangar_door),
     ("pipe_horizontal", pipe_horizontal),
     ("pipe_vertical", pipe_vertical),
+    ("sub_dock", sub_dock),
 )
 
 

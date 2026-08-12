@@ -6,7 +6,7 @@ extends RefCounted
 ## The tile in front is checked first, then the four neighbours, so facing a
 ## workbench picks the workbench even when a locker is also within reach.
 
-enum Kind { NONE, STASH, CRAFT, SLEEP, PICK_UP, TRADE, TRAIN, WORK }
+enum Kind { NONE, STASH, CRAFT, SLEEP, PICK_UP, TRADE, TRAIN, WORK, ESCAPE }
 
 ## Which prop offers which interaction. A workbench is a crafting station that
 ## also happens to be the welding job's post, so the world resolves work first
@@ -22,6 +22,8 @@ const PROP_INTERACTIONS := {
 	&"pressure_chamber": Kind.TRAIN,
 	&"crate": Kind.WORK,
 	&"table": Kind.WORK,
+	&"hangar_door": Kind.ESCAPE,
+	&"sub_dock": Kind.ESCAPE,
 }
 
 ## Which stat a training prop raises.
@@ -39,6 +41,7 @@ const PROMPTS := {
 	Kind.TRADE: "Trade",
 	Kind.TRAIN: "Train",
 	Kind.WORK: "Get on with it",
+	Kind.ESCAPE: "Leave the rig",
 }
 
 

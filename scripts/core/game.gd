@@ -6,11 +6,13 @@ extends Node
 @onready var hud: CanvasLayer = $Hud
 @onready var touch_controls: CanvasLayer = $TouchControls
 @onready var interaction_panel: CanvasLayer = $InteractionPanel
+@onready var outcome_screen: CanvasLayer = $OutcomeScreen
 
 
 func _ready() -> void:
 	hud.bind(rig)
 	interaction_panel.bind(rig)
+	outcome_screen.bind(rig)
 
 
 func _unhandled_input(event: InputEvent) -> void:

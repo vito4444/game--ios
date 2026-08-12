@@ -36,6 +36,15 @@ const SCENARIOS := [
 		"give": ["scrap_metal", "scrap_metal", "wrench", "keycard", "torch_fuel"],
 		"interact": true,
 	},
+	{
+		"name": "outcome",
+		"cell": Vector2i(16, 29),
+		"face": Vector2(1, 0),
+		"minute": 2 * 60 + 30,
+		"suspicion": 70,
+		"give": ["drive_housing", "drive_impeller", "drive_core", "cutting_torch"],
+		"interact": true,
+	},
 ]
 
 
@@ -67,7 +76,9 @@ func _run(output_dir: String) -> void:
 		quit(1)
 		return
 
+	var panel := game.get_node("InteractionPanel")
 	for scenario in SCENARIOS:
+		panel.close()
 		_stage(rig, scenario)
 		for _frame in WARMUP_FRAMES:
 			await process_frame
@@ -93,5 +104,8 @@ func _stage(rig: Node, scenario: Dictionary) -> void:
 	rig.player.global_position = rig.map.cell_centre(scenario["cell"])
 	rig.session.clock.advance_to_minute_of_day(scenario["minute"])
 	rig.session.suspicion.value = scenario["suspicion"]
+	if scenario.has("face"):
+		rig.player.face(scenario["face"])
+	rig.session.inventory.clear()
 	for item in scenario.get("give", []):
 		rig.session.inventory.add(StringName(item))

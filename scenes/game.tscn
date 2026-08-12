@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/core/game.gd" id="1_game"]
 [ext_resource type="PackedScene" path="res://scenes/world/rig.tscn" id="2_rig"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="3_hud"]
 [ext_resource type="PackedScene" path="res://scenes/ui/touch_controls.tscn" id="4_touch"]
 [ext_resource type="PackedScene" path="res://scenes/ui/interaction_panel.tscn" id="5_panel"]
+[ext_resource type="PackedScene" path="res://scenes/ui/outcome_screen.tscn" id="6_outcome"]
 
 [node name="Game" type="Node"]
 script = ExtResource("1_game")
@@ -16,3 +17,5 @@ script = ExtResource("1_game")
 [node name="TouchControls" parent="." instance=ExtResource("4_touch")]
 
 [node name="InteractionPanel" parent="." instance=ExtResource("5_panel")]
+
+[node name="OutcomeScreen" parent="." instance=ExtResource("6_outcome")]

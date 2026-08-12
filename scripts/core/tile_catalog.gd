@@ -56,6 +56,7 @@ const PROPS_ORDER: Array[StringName] = [
 	&"hangar_door",
 	&"pipe_horizontal",
 	&"pipe_vertical",
+	&"sub_dock",
 ]
 
 ## Ground characters. `solid` blocks movement, `blocks_sight` breaks a guard's
@@ -107,6 +108,7 @@ const PROP_SYMBOLS := {
 	"G": {"tile": &"hangar_door", "solid": true, "blocks_sight": true},
 	"=": {"tile": &"pipe_horizontal", "solid": false, "blocks_sight": false},
 	"|": {"tile": &"pipe_vertical", "solid": false, "blocks_sight": false},
+	"S": {"tile": &"sub_dock", "solid": true, "blocks_sight": false},
 }
 
 
