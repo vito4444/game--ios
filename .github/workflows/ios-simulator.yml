@@ -143,18 +143,19 @@ jobs:
 
       - name: Check the app is still running
         run: |
-          udid="${{ steps.device.outputs.udid }}"
-          # A crash on launch leaves nothing running, which is the failure this
-          # whole job exists to catch.
-          if ! xcrun simctl spawn "$udid" launchctl list | grep -q "${{ env.BUNDLE_ID }}"; then
+          # A simulated app runs as a process on the host, so the host's own
+          # process table is the reliable place to look. launchctl inside the
+          # simulator does not list it.
+          if ! pgrep -x DeepContract > /dev/null; then
             echo "::error::The app is not running - it crashed or exited on launch."
-            xcrun simctl spawn "$udid" log show --last 2m --predicate \
-              'process == "DeepContract"' --style compact | tail -60 || true
+            xcrun simctl spawn "${{ steps.device.outputs.udid }}" log show --last 2m \
+              --predicate 'process == "DeepContract"' --style compact | tail -40 || true
             exit 1
           fi
-          echo "The app is running on $(sw_vers -productName) simulator."
+          echo "Running as pid $(pgrep -x DeepContract)."
 
       - name: Capture the game itself
+        if: always()
         run: |
           udid="${{ steps.device.outputs.udid }}"
           # simctl cannot tap, so the game is relaunched straight into a session.
@@ -182,6 +183,7 @@ jobs:
           cat build/simulator-capture/diagnostics.log 2>/dev/null || echo "(no diagnostics file)"
 
       - name: Turn the captures upright
+        if: always()
         run: |
           # The game is landscape but a headless simulator has no accelerometer
           # to rotate the frame buffer, so the capture comes out on its side.
