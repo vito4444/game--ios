@@ -16,6 +16,10 @@ config/version="0.1.0"
 run/main_scene="res://scenes/ui/main_menu.tscn"
 config/features=PackedStringArray("4.7", "Mobile")
 
+[autoload]
+
+GameInput="*res://scripts/core/game_input.gd"
+
 [debug]
 
 gdscript/warnings/untyped_declaration=1
@@ -87,5 +91,7 @@ ui_pause={
 
 renderer/rendering_method="mobile"
 renderer/rendering_method.mobile="mobile"
+; Web builds run on WebGL2, which only the compatibility backend targets.
+renderer/rendering_method.web="gl_compatibility"
 textures/canvas_textures/default_texture_filter=0
 textures/vram_compression/import_etc2_astc=true

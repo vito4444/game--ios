@@ -13,7 +13,7 @@ fi
 
 "${GODOT_BIN}" --headless --path "${REPO_ROOT}" \
 	-s addons/gut/gut_cmdln.gd \
-	-gdir=res://tests/unit \
+	-gdir=res://tests \
 	-ginclude_subdirs \
 	-gexit \
 	"$@"

@@ -54,7 +54,10 @@ jobs:
       - name: Import project
         run: tools/check_import.sh
 
-      - name: Run unit tests
+      - name: Compile every script and scene
+        run: .tools/godot --headless --path . -s tools/compile_all.gd
+
+      - name: Run tests
         run: tools/run_tests.sh
 
       - name: Upload import log
@@ -64,3 +67,37 @@ jobs:
           name: import-log
           path: .tools/import.log
           if-no-files-found: warn
+
+  web:
+    name: Web export
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache Godot toolchain
+        uses: actions/cache@v4
+        with:
+          path: .tools
+          key: godot-${{ runner.os }}-${{ env.GODOT_VERSION }}-${{ env.GODOT_RELEASE }}
+
+      - name: Cache export templates
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/godot/export_templates
+          key: godot-templates-${{ env.GODOT_VERSION }}-${{ env.GODOT_RELEASE }}
+
+      - name: Download Godot and export templates
+        run: tools/get_godot.sh --templates
+
+      - name: Import project
+        run: tools/check_import.sh
+
+      - name: Export for the browser
+        run: tools/export_web.sh
+
+      - name: Upload playable build
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: build/web

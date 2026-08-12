@@ -71,14 +71,19 @@ def floor_grate(s: Surface) -> None:
 
 
 def floor_tile(s: Surface) -> None:
-    """Bunk and galley flooring: cleaner, lighter, reads as habitable."""
-    s.fill(STEEL_DARK)
+    """Bunk and galley flooring: cleaner than grating, still not bright.
+
+    Kept a shade below the walls on purpose. When floor and wall sit at the
+    same value the room reads as one flat field and the player loses track of
+    where the walls are.
+    """
+    s.fill(INK)
     for cy in (0, 16):
         for cx in (0, 16):
-            s.rect(cx + 1, cy + 1, 14, 14, STEEL)
-            s.hline(cx + 1, cy + 1, 13, STEEL_LIGHT)
-            s.vline(cx + 1, cy + 1, 13, STEEL_LIGHT)
-            s.set(cx + 14, cy + 14, HULL_SHADOW)
+            s.rect(cx + 1, cy + 1, 14, 14, STEEL_DARK)
+            s.hline(cx + 1, cy + 1, 13, STEEL)
+            s.vline(cx + 1, cy + 1, 13, STEEL)
+            s.set(cx + 14, cy + 14, ABYSS)
 
 
 def floor_concrete(s: Surface) -> None:
@@ -127,9 +132,10 @@ def _hull_wall_base(s: Surface) -> None:
     The 10px cap is what sells the 3/4 view; without it walls read as flat
     floor paint from directly above.
     """
-    s.rect(0, 0, TILE, 10, STEEL)
-    s.hline(0, 0, TILE, STEEL_LIGHT)
-    s.hline(0, 1, TILE, STEEL_LIGHT)
+    s.rect(0, 0, TILE, 10, STEEL_LIGHT)
+    s.hline(0, 0, TILE, BONE)
+    s.hline(0, 1, TILE, BONE)
+    s.hline(0, 8, TILE, STEEL)
     s.hline(0, 9, TILE, STEEL_DARK)
 
     s.rect(0, 10, TILE, TILE - 10, HULL_DARK)
@@ -149,12 +155,12 @@ def wall_hull(s: Surface) -> None:
 
 def wall_hull_top(s: Surface) -> None:
     """Interior of a thick wall block, seen purely from above."""
-    s.fill(STEEL)
+    s.fill(STEEL_LIGHT)
     for y in range(0, TILE, 8):
-        s.hline(0, y, TILE, STEEL_DARK)
+        s.hline(0, y, TILE, STEEL)
     for x in range(0, TILE, 16):
-        s.vline(x, 0, TILE, STEEL_DARK)
-    s.hline(0, 0, TILE, STEEL_LIGHT)
+        s.vline(x, 0, TILE, STEEL)
+    s.hline(0, 0, TILE, BONE)
 
 
 def wall_window(s: Surface) -> None:
@@ -262,12 +268,11 @@ def _pipe_body(s: Surface, horizontal: bool) -> None:
 
 
 def pipe_horizontal(s: Surface) -> None:
-    floor_concrete(s)
+    """Pipes are props, not terrain, so they leave the deck showing around them."""
     _pipe_body(s, horizontal=True)
 
 
 def pipe_vertical(s: Surface) -> None:
-    floor_concrete(s)
     _pipe_body(s, horizontal=False)
 
 
@@ -306,8 +311,6 @@ TERRAIN_TILES: tuple[tuple[str, Callable[[Surface], None]], ...] = (
     ("hatch_closed", hatch_closed),
     ("hatch_open", hatch_open),
     ("vent", vent),
-    ("pipe_horizontal", pipe_horizontal),
-    ("pipe_vertical", pipe_vertical),
     ("moonpool", moonpool),
 )
 
@@ -532,6 +535,8 @@ PROP_TILES: tuple[tuple[str, Callable[[Surface], None]], ...] = (
     ("market_crate", market_crate),
     ("drive_component", drive_component),
     ("hangar_door", hangar_door),
+    ("pipe_horizontal", pipe_horizontal),
+    ("pipe_vertical", pipe_vertical),
 )
 
 
