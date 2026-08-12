@@ -12,6 +12,7 @@ signal player_released()
 
 const SCHEDULE_PATH := "res://data/schedule/daily.json"
 const ITEMS_PATH := "res://data/items/items.json"
+const RECIPES_PATH := "res://data/recipes/recipes.json"
 
 ## Rig time when a new contract starts: woken for the first shift.
 const START_MINUTE_OF_DAY := 6 * 60
@@ -27,15 +28,22 @@ var clock: GameClock
 var suspicion: Suspicion
 var roll_call: RollCall
 var items: ItemCatalog
+var recipes: RecipeBook
 var inventory: Inventory
+var stats: Stats
+var crafting: Crafting
+var shakedown: Shakedown
 var player_state: PlayerState
+var stashes: Dictionary = {}
 var errors: PackedStringArray = PackedStringArray()
 
 
 func _init(
 	session_map: RigMap,
 	schedule_path: String = SCHEDULE_PATH,
-	items_path: String = ITEMS_PATH
+	items_path: String = ITEMS_PATH,
+	recipes_path: String = RECIPES_PATH,
+	search_seed: int = 0
 ) -> void:
 	map = session_map
 	navigation = RigNavigation.new(map)
@@ -47,13 +55,36 @@ func _init(
 	items = ItemCatalog.load_from(items_path)
 	errors.append_array(items.errors)
 
+	recipes = RecipeBook.load_from(recipes_path, items)
+	errors.append_array(recipes.errors)
+
 	clock = GameClock.new(schedule, START_MINUTE_OF_DAY)
 	suspicion = Suspicion.new()
 	roll_call = RollCall.new(clock, suspicion)
 	inventory = Inventory.new(items)
+	stats = Stats.new()
+	crafting = Crafting.new(recipes, inventory, stats)
 	player_state = PlayerState.new()
 
+	_build_stashes()
+	shakedown = Shakedown.new(inventory, suspicion, stashes, search_seed)
+
 	clock.minute_passed.connect(_on_minute_passed)
+	roll_call.attended.connect(_on_muster_attended)
+	clock.event_started.connect(_on_event_started)
+
+
+func _build_stashes() -> void:
+	## Every locker on the map is a stash the player can use.
+	for y in map.height:
+		for x in map.width:
+			var cell := Vector2i(x, y)
+			if TileCatalog.prop_entry(map.prop_symbol(cell)).get("tile", &"") == &"locker":
+				stashes[cell] = Stash.new(items, cell)
+
+
+func stash_at(cell: Vector2i) -> Stash:
+	return stashes.get(cell)
 
 
 func is_valid() -> bool:
@@ -103,3 +134,13 @@ func _on_minute_passed(_minute_of_day: int, _day: int) -> void:
 	player_state.serve_time(1)
 	if player_state.is_free():
 		player_released.emit()
+
+
+func _on_muster_attended(_event: Schedule.Event) -> void:
+	## Turning up is also when security gets a free look at your pockets.
+	shakedown.attempt_pat_down()
+
+
+func _on_event_started(event: Schedule.Event) -> void:
+	if event.id == Shakedown.SWEEP_EVENT:
+		shakedown.sweep_lockers()

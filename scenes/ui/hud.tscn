@@ -64,11 +64,19 @@ text = "Wake"
 vertical_alignment = 1
 
 [node name="Zone" type="Label" parent="Bar/Margin/Row"]
-custom_minimum_size = Vector2(150, 0)
+custom_minimum_size = Vector2(128, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.56078, 0.83922, 0.78824, 1)
 theme_override_font_sizes/font_size = 13
 text = "Bunk pods"
+vertical_alignment = 1
+
+[node name="Carrying" type="Label" parent="Bar/Margin/Row"]
+custom_minimum_size = Vector2(46, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.90980, 0.90196, 0.87451, 1)
+theme_override_font_sizes/font_size = 13
+text = "0/10"
 vertical_alignment = 1
 
 [node name="SuspicionLabel" type="Label" parent="Bar/Margin/Row"]
@@ -101,5 +109,25 @@ theme_override_colors/font_color = Color(0.96863, 0.95294, 0.90980, 1)
 theme_override_font_sizes/font_size = 13
 theme_override_styles/normal = SubResource("StyleBoxFlat_alert")
 text = "MUSTER"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Prompt" type="Label" parent="."]
+visible = false
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -150.0
+offset_top = -40.0
+offset_right = 150.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.96863, 0.95294, 0.90980, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_alert")
+text = "Open locker"
 horizontal_alignment = 1
 vertical_alignment = 1

@@ -41,6 +41,8 @@ var ground: PackedStringArray = PackedStringArray()
 var props: PackedStringArray = PackedStringArray()
 var zones: Array[Zone] = []
 var patrols: Array[Patrol] = []
+## Loose items lying on the deck, keyed by cell.
+var loose_items: Dictionary = {}
 var errors: PackedStringArray = PackedStringArray()
 
 
@@ -72,6 +74,17 @@ func prop_symbol(cell: Vector2i) -> String:
 	if not in_bounds(cell):
 		return TileCatalog.EMPTY_SYMBOL
 	return props[cell.y][cell.x]
+
+
+## Removes a prop from the map, for something the player picks up or cuts away.
+func clear_prop(cell: Vector2i) -> bool:
+	if not in_bounds(cell) or prop_symbol(cell) == TileCatalog.EMPTY_SYMBOL:
+		return false
+	var row := props[cell.y]
+	props[cell.y] = (
+		row.substr(0, cell.x) + TileCatalog.EMPTY_SYMBOL + row.substr(cell.x + 1)
+	)
+	return true
 
 
 ## Cells a door has currently opened. Kept on the map rather than only in the
@@ -188,6 +201,8 @@ func _parse(text: String) -> void:
 				_parse_zone(line)
 			"patrols":
 				_parse_patrol(line)
+			"items":
+				_parse_loose_item(line)
 			_:
 				errors.append("unknown section: %s" % section)
 
@@ -260,6 +275,32 @@ func _parse_patrol(line: String) -> void:
 	patrols.append(Patrol.new(StringName(parts[0].strip_edges()), cells))
 
 
+func _parse_loose_item(line: String) -> void:
+	var parts := line.split("=", true, 1)
+	if parts.size() != 2:
+		errors.append("malformed item line: %s" % line)
+		return
+	var coords := parts[0].strip_edges().split(",")
+	if coords.size() != 2:
+		errors.append("item position needs x,y: %s" % line)
+		return
+	loose_items[Vector2i(coords[0].to_int(), coords[1].to_int())] = StringName(
+		parts[1].strip_edges()
+	)
+
+
+func loose_item_at(cell: Vector2i) -> StringName:
+	return loose_items.get(cell, &"")
+
+
+func take_loose_item(cell: Vector2i) -> StringName:
+	var id: StringName = loose_items.get(cell, &"")
+	if id != &"":
+		loose_items.erase(cell)
+		clear_prop(cell)
+	return id
+
+
 func patrol_by_id(id: StringName) -> Patrol:
 	for patrol in patrols:
 		if patrol.id == id:
@@ -298,6 +339,12 @@ func _validate() -> void:
 		errors.append("spawn %s is outside the map" % spawn)
 	elif is_solid(spawn):
 		errors.append("spawn %s is inside a solid tile" % spawn)
+
+	for cell in loose_items:
+		if not in_bounds(cell):
+			errors.append("loose item at %s is off the map" % cell)
+		elif TileCatalog.prop_entry(prop_symbol(cell)).get("tile", &"") != &"drive_component":
+			errors.append("loose item at %s has no pickup prop under it" % cell)
 
 	for patrol in patrols:
 		if patrol.waypoints.size() < 2:

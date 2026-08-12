@@ -9,6 +9,16 @@ const OFFICER_SCENE := "res://scenes/actors/security_officer.tscn"
 
 signal map_loaded(map: RigMap)
 signal session_started(session: Session)
+## Raised for interactions that need an interface; the immediate ones are
+## handled here.
+signal interaction_requested(target: Interaction.Target)
+signal notice(text: String)
+
+## Sleeping in a bunk skips to the wake-up call.
+const WAKE_MINUTE_OF_DAY := Session.START_MINUTE_OF_DAY
+
+## Game minutes spent on one training session.
+const TRAINING_MINUTES := 45
 
 @onready var _ground: TileMapLayer = $Ground
 @onready var _props: TileMapLayer = $YSort/Props
@@ -22,7 +32,64 @@ var officers: Array[SecurityOfficer] = []
 
 
 func _ready() -> void:
+	GameInput.interact_pressed.connect(_on_interact)
 	load_map(DEFAULT_MAP)
+
+
+## What the action button would do from where the player is standing.
+func current_interaction() -> Interaction.Target:
+	if session == null or player == null:
+		return Interaction.none()
+	return Interaction.find(map, player.cell(), player.facing_direction())
+
+
+func _on_interact() -> void:
+	if session == null or not session.player_state.is_free():
+		return
+
+	var target := current_interaction()
+	match target.kind:
+		Interaction.Kind.SLEEP:
+			_sleep()
+		Interaction.Kind.PICK_UP:
+			_pick_up(target.cell)
+		Interaction.Kind.TRAIN:
+			_train(target)
+		Interaction.Kind.NONE:
+			pass
+		_:
+			interaction_requested.emit(target)
+
+
+func _sleep() -> void:
+	session.clock.advance_to_minute_of_day(WAKE_MINUTE_OF_DAY)
+	notice.emit("You sleep through to the wake-up call.")
+
+
+func _pick_up(cell: Vector2i) -> void:
+	var item_id := map.loose_item_at(cell)
+	if item_id == &"":
+		return
+	if not session.inventory.can_add(item_id):
+		notice.emit("No room for the %s." % session.items.display_name(item_id))
+		return
+
+	map.take_loose_item(cell)
+	session.inventory.add(item_id)
+	_props.erase_cell(cell)
+	notice.emit("Picked up the %s." % session.items.display_name(item_id))
+
+
+func _train(target: Interaction.Target) -> void:
+	var stat := target.trains()
+	if stat == &"":
+		return
+	var levelled := session.stats.train(stat)
+	session.clock.advance_minutes(TRAINING_MINUTES)
+	if levelled:
+		notice.emit("%s is now %d." % [String(stat).capitalize(), session.stats.level(stat)])
+	else:
+		notice.emit("You put in a session on %s." % String(stat).capitalize())
 
 
 func load_map(path: String) -> bool:

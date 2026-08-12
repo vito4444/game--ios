@@ -135,6 +135,24 @@
 			"contraband": false,
 			"value": 20,
 			"size": 1
+		},
+		{
+			"id": "rebreather",
+			"name": "Patched rebreather",
+			"description": "Scrubs your own air back at you. Buys a long minute.",
+			"icon": "oxygen",
+			"contraband": true,
+			"value": 95,
+			"size": 2
+		},
+		{
+			"id": "door_shim",
+			"name": "Door shim",
+			"description": "Convinces a powered door it has already been authorised.",
+			"icon": "keycard",
+			"contraband": true,
+			"value": 60,
+			"size": 1
 		}
 	]
 }

@@ -45,6 +45,18 @@ func update_animation(velocity: Vector2, delta: float) -> void:
 	_apply_region()
 
 
+static func direction_of(value: Facing) -> Vector2:
+	match value:
+		Facing.LEFT:
+			return Vector2.LEFT
+		Facing.RIGHT:
+			return Vector2.RIGHT
+		Facing.UP:
+			return Vector2.UP
+		_:
+			return Vector2.DOWN
+
+
 static func facing_for(direction: Vector2) -> Facing:
 	## Vertical wins ties so that walking diagonally into a wall keeps the
 	## sprite pointing the way the player is still moving.

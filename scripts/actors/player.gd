@@ -27,5 +27,9 @@ func facing() -> CharacterSprite.Facing:
 	return _sprite.facing
 
 
+func facing_direction() -> Vector2:
+	return CharacterSprite.direction_of(_sprite.facing)
+
+
 func cell() -> Vector2i:
 	return Vector2i((global_position / Vector2(TileCatalog.TILE_SIZE)).floor())

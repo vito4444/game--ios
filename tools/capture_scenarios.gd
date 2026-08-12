@@ -20,6 +20,22 @@ const SCENARIOS := [
 	{"name": "corridor_patrol", "cell": Vector2i(8, 11), "minute": 14 * 60, "suspicion": 40},
 	{"name": "moon_pool", "cell": Vector2i(24, 27), "minute": 16 * 60, "suspicion": 60},
 	{"name": "hangar", "cell": Vector2i(8, 29), "minute": 22 * 60 + 30, "suspicion": 85},
+	{
+		"name": "locker_panel",
+		"cell": Vector2i(2, 2),
+		"minute": 14 * 60 + 30,
+		"suspicion": 30,
+		"give": ["cutting_torch", "ration", "scrap_metal"],
+		"interact": true,
+	},
+	{
+		"name": "workbench_panel",
+		"cell": Vector2i(32, 29),
+		"minute": 15 * 60,
+		"suspicion": 20,
+		"give": ["scrap_metal", "scrap_metal", "wrench", "keycard", "torch_fuel"],
+		"interact": true,
+	},
 ]
 
 
@@ -55,6 +71,11 @@ func _run(output_dir: String) -> void:
 		_stage(rig, scenario)
 		for _frame in WARMUP_FRAMES:
 			await process_frame
+		if scenario.get("interact", false):
+			# Fetched by path rather than named: see the note on `rig` above.
+			root.get_node("/root/GameInput").press_interact()
+			for _frame in 4:
+				await process_frame
 		await process_frame
 
 		var path: String = "%s/%s.png" % [output_dir, scenario["name"]]
@@ -72,3 +93,5 @@ func _stage(rig: Node, scenario: Dictionary) -> void:
 	rig.player.global_position = rig.map.cell_centre(scenario["cell"])
 	rig.session.clock.advance_to_minute_of_day(scenario["minute"])
 	rig.session.suspicion.value = scenario["suspicion"]
+	for item in scenario.get("give", []):
+		rig.session.inventory.add(StringName(item))

@@ -1,0 +1,122 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/interaction_panel.gd" id="1_panel"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_frame"]
+bg_color = Color(0.07451, 0.16471, 0.22745, 0.96078)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.18039, 0.4353, 0.4941, 1)
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 10.0
+
+[node name="InteractionPanel" type="CanvasLayer"]
+layer = 4
+script = ExtResource("1_panel")
+
+[node name="Root" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Dim" type="ColorRect" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05098, 0.10588, 0.16471, 0.65098)
+
+[node name="Frame" type="PanelContainer" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 28.0
+offset_top = 22.0
+offset_right = -28.0
+offset_bottom = -22.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_frame")
+
+[node name="Layout" type="VBoxContainer" parent="Root/Frame"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Header" type="HBoxContainer" parent="Root/Frame/Layout"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="Root/Frame/Layout/Header"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96863, 0.95294, 0.90980, 1)
+theme_override_font_sizes/font_size = 16
+text = "Locker"
+
+[node name="Subtitle" type="Label" parent="Root/Frame/Layout/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.65882, 0.64314, 0.72157, 1)
+theme_override_font_sizes/font_size = 13
+text = ""
+vertical_alignment = 1
+
+[node name="Close" type="Button" parent="Root/Frame/Layout/Header"]
+custom_minimum_size = Vector2(72, 34)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Close"
+
+[node name="Columns" type="HBoxContainer" parent="Root/Frame/Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 14
+
+[node name="Left" type="VBoxContainer" parent="Root/Frame/Layout/Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Title" type="Label" parent="Root/Frame/Layout/Columns/Left"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94902, 0.65098, 0.35294, 1)
+theme_override_font_sizes/font_size = 13
+text = "Carrying"
+
+[node name="Scroll" type="ScrollContainer" parent="Root/Frame/Layout/Columns/Left"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="Items" type="VBoxContainer" parent="Root/Frame/Layout/Columns/Left/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+
+[node name="Right" type="VBoxContainer" parent="Root/Frame/Layout/Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Title" type="Label" parent="Root/Frame/Layout/Columns/Right"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94902, 0.65098, 0.35294, 1)
+theme_override_font_sizes/font_size = 13
+text = "Locker"
+
+[node name="Scroll" type="ScrollContainer" parent="Root/Frame/Layout/Columns/Right"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="Items" type="VBoxContainer" parent="Root/Frame/Layout/Columns/Right/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2

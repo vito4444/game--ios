@@ -41,6 +41,10 @@ func free_slots() -> int:
 	return capacity - used_slots()
 
 
+func size_of_item(id: StringName) -> int:
+	return _catalog.size_of(id)
+
+
 func can_add(id: StringName) -> bool:
 	return _catalog.has(id) and _catalog.size_of(id) <= free_slots()
 
