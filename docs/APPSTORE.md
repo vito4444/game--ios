@@ -21,6 +21,40 @@ Run the workflow from the Actions tab. It is manual on purpose: macOS runner
 minutes bill at ten times the Linux rate, and every successful run consumes a
 TestFlight build number.
 
+## Verifying on iOS without an Apple account
+
+Simulator builds are not signed, so the `iOS Simulator` workflow needs no
+membership and no secrets. It runs on every push: exports the Xcode project on
+a Linux runner, builds it on a macOS one, boots a simulator, installs the game,
+launches it, and captures the result. The captures land in the run's artifacts.
+
+It has already earned its keep. The first capture showed the interface drawing
+over an empty grey field, and the diagnostics it collects said why: the rig
+layout was missing from every export, because `.map` is not a format Godot
+recognises as a resource and `all_resources` had quietly skipped it.
+
+**What it covers**: the app builds, launches, and does not crash; the world,
+sprites and fonts render; the touch controls land inside a real device's safe
+area, clear of the Dynamic Island; the exported build contains its data.
+
+**What it does not cover**:
+
+- **The renderer.** A simulator has no Vulkan, so Godot falls back to OpenGL ES
+  there. A device uses the mobile backend through MoltenVK. Anything specific to
+  that path is unverified until a real build runs.
+- **Performance.** The simulator uses Apple's software renderer on a shared CI
+  machine; its frame rate says nothing about a phone's.
+- **Touch feel.** simctl cannot tap, so the capture reaches the game through a
+  launch flag rather than by playing it. Whether the stick sits comfortably
+  under a thumb is a question only a device answers.
+
+The job runs on `macos-15-intel` deliberately. Godot's official iOS templates
+ship a simulator library containing x86_64 only - the xcframework directory is
+named `ios-arm64_x86_64-simulator` but the archive inside holds one
+architecture - so an Apple Silicon runner has nothing to link against. That
+label is GitHub's last x86_64 macOS image and retires in August 2027. Device
+builds are unaffected: those are arm64 and cross-compile from any host.
+
 ## One-time setup
 
 ### 1. Register the app

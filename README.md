@@ -115,6 +115,23 @@ You do not need a Mac. You do need an Apple Developer Program membership.
 [docs/APPSTORE.md](docs/APPSTORE.md) covers the secrets, the one-time
 certificate setup, and the App Review answers.
 
+Verification does not wait on any of that. Simulator builds need no signing, so
+the `iOS Simulator` workflow runs on every push: it exports the project, builds
+it on a macOS runner, boots a simulator, launches the game and captures what
+appears. That is how the missing rig layout below was found.
+
+## Exports are checked by running them
+
+`tools/verify_export.sh` exports for Linux and runs the packaged game with
+`DEEPCONTRACT_SELFTEST=1`, which loads the map, items, recipes, jobs, routes,
+schedule, textures, translations and sounds from inside the build and exits
+non-zero if any of them is missing.
+
+The unit suite cannot catch this class of problem: it runs against the source
+tree, where every file is present whether or not it ships. An export only packs
+what the export filter matches, and `.map` is not a format Godot recognises as
+a resource, so for several commits every build shipped without its level.
+
 ## Licence
 
 Code and generated assets in this repository are original work. Third-party
