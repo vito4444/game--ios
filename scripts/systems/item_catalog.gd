@@ -71,9 +71,14 @@ func size_of(id: StringName) -> int:
 	return item.size if item != null else 1
 
 
+## Localised where a translation exists, otherwise the name from the JSON.
 func display_name(id: StringName) -> String:
 	var item := get_item(id)
-	return item.name if item != null else String(id)
+	if item == null:
+		return String(id)
+	var key := "ITEM_%s" % String(id).to_upper()
+	var translated := TranslationServer.translate(key)
+	return item.name if translated == key else translated
 
 
 func contraband_ids() -> Array[StringName]:

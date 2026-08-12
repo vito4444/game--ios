@@ -5,7 +5,7 @@
 			"id": "wake",
 			"hour": 6,
 			"minute": 0,
-			"label": "Wake",
+			"label": "SCHEDULE_WAKE",
 			"zone": "",
 			"roll_call": false,
 			"duration_minutes": 60
@@ -14,7 +14,7 @@
 			"id": "breakfast",
 			"hour": 7,
 			"minute": 0,
-			"label": "Breakfast",
+			"label": "SCHEDULE_BREAKFAST",
 			"zone": "galley",
 			"roll_call": false,
 			"duration_minutes": 60
@@ -23,7 +23,7 @@
 			"id": "morning_muster",
 			"hour": 8,
 			"minute": 0,
-			"label": "Morning muster",
+			"label": "SCHEDULE_MORNING_MUSTER",
 			"zone": "muster_deck",
 			"roll_call": true,
 			"duration_minutes": 30
@@ -32,7 +32,7 @@
 			"id": "shift_start",
 			"hour": 8,
 			"minute": 30,
-			"label": "Shift",
+			"label": "SCHEDULE_SHIFT_START",
 			"zone": "",
 			"roll_call": false,
 			"duration_minutes": 210
@@ -41,7 +41,7 @@
 			"id": "lunch",
 			"hour": 12,
 			"minute": 0,
-			"label": "Lunch",
+			"label": "SCHEDULE_LUNCH",
 			"zone": "galley",
 			"roll_call": false,
 			"duration_minutes": 120
@@ -50,7 +50,7 @@
 			"id": "free_period",
 			"hour": 14,
 			"minute": 0,
-			"label": "Free period",
+			"label": "SCHEDULE_FREE_PERIOD",
 			"zone": "",
 			"roll_call": false,
 			"duration_minutes": 120
@@ -59,7 +59,7 @@
 			"id": "training_window",
 			"hour": 16,
 			"minute": 0,
-			"label": "Training window",
+			"label": "SCHEDULE_TRAINING_WINDOW",
 			"zone": "",
 			"roll_call": false,
 			"duration_minutes": 120
@@ -68,7 +68,7 @@
 			"id": "dinner",
 			"hour": 18,
 			"minute": 0,
-			"label": "Dinner",
+			"label": "SCHEDULE_DINNER",
 			"zone": "galley",
 			"roll_call": false,
 			"duration_minutes": 120
@@ -77,7 +77,7 @@
 			"id": "evening_muster",
 			"hour": 20,
 			"minute": 0,
-			"label": "Evening muster",
+			"label": "SCHEDULE_EVENING_MUSTER",
 			"zone": "muster_deck",
 			"roll_call": true,
 			"duration_minutes": 30
@@ -86,7 +86,7 @@
 			"id": "lights_out",
 			"hour": 22,
 			"minute": 0,
-			"label": "Lights out",
+			"label": "SCHEDULE_LIGHTS_OUT",
 			"zone": "bunk_pods",
 			"roll_call": false,
 			"duration_minutes": 480

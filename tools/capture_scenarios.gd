@@ -7,7 +7,9 @@ extends SceneTree
 ## than grabbing whatever the game happens to be showing.
 ##
 ##   xvfb-run -a .tools/godot --path . --resolution 1280x720 \
-##       -s tools/capture_scenarios.gd -- /tmp/shots
+##       -s tools/capture_scenarios.gd -- /tmp/shots [locale]
+##
+## Run once per locale to produce the App Store screenshot sets.
 
 const GAME_SCENE := "res://scenes/game.tscn"
 const WARMUP_FRAMES := 30
@@ -44,6 +46,7 @@ const SCENARIOS := [
 	{
 		"name": "workbench_panel",
 		"cell": Vector2i(32, 29),
+		"face": Vector2(0, -1),
 		"minute": 15 * 60,
 		"suspicion": 20,
 		"give": ["scrap_metal", "scrap_metal", "wrench", "keycard", "torch_fuel"],
@@ -65,10 +68,10 @@ func _initialize() -> void:
 	var args := OS.get_cmdline_user_args()
 	var output_dir: String = args[0] if args.size() > 0 else "user://shots"
 	DirAccess.make_dir_recursive_absolute(output_dir)
-	_run(output_dir)
+	_run(output_dir, args[1] if args.size() > 1 else "")
 
 
-func _run(output_dir: String) -> void:
+func _run(output_dir: String, locale: String) -> void:
 	var packed := load(GAME_SCENE) as PackedScene
 	if packed == null:
 		printerr("cannot load %s" % GAME_SCENE)
@@ -78,6 +81,10 @@ func _run(output_dir: String) -> void:
 	var game := packed.instantiate()
 	root.add_child(game)
 	await process_frame
+	# After the first frame: the Settings autoload applies its own locale in
+	# _ready and would otherwise overwrite this.
+	if not locale.is_empty():
+		TranslationServer.set_locale(locale)
 	await process_frame
 
 	# Untyped on purpose: a `-s` script is compiled before autoloads are

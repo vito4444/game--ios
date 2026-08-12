@@ -34,22 +34,26 @@ func _show(route: EscapeRoutes.Route) -> void:
 	visible = true
 	GameInput.movement_locked = true
 
-	_title.text = "Contract terminated"
-	_route.text = route.name
-	_summary.text = route.summary
+	_title.text = tr("OUTCOME_TITLE")
+	var route_key := "ROUTE_%s" % String(route.id).to_upper()
+	var translated := TranslationServer.translate(route_key)
+	_route.text = route.name if translated == route_key else translated
+	var summary_key := "%s_SUMMARY" % route_key
+	var summary := TranslationServer.translate(summary_key)
+	_summary.text = route.summary if summary == summary_key else summary
 
 	for child in _stats.get_children():
 		child.queue_free()
 
 	var days := _session.clock.day() + 1
-	_add("Days on the rig", str(days))
-	_add("Time of departure", _session.clock.clock_text())
-	_add("Times detained", str(_session.times_detained))
-	_add("Times searched", str(_session.times_searched))
-	_add("Suspicion at the end", "%d%%" % _session.suspicion.value)
-	_add("Credits in pocket", str(_session.wallet.balance))
+	_add(tr("OUTCOME_DAYS"), str(days))
+	_add(tr("OUTCOME_DEPARTURE"), _session.clock.clock_text())
+	_add(tr("OUTCOME_DETAINED"), str(_session.times_detained))
+	_add(tr("OUTCOME_SEARCHED"), str(_session.times_searched))
+	_add(tr("OUTCOME_SUSPICION"), "%d%%" % _session.suspicion.value)
+	_add(tr("OUTCOME_CREDITS"), str(_session.wallet.balance))
 	_add(
-		"Technical / Conditioning / Pressure",
+		tr("OUTCOME_STATS"),
 		"%d / %d / %d" % [
 			_session.stats.level(Stats.TECHNICAL),
 			_session.stats.level(Stats.CONDITIONING),

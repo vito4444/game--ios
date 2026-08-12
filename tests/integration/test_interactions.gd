@@ -47,7 +47,9 @@ func test_a_locker_offers_a_stash() -> void:
 	await _stand_on(_beside(locker))
 	var target := rig.current_interaction()
 	assert_eq(target.kind, Interaction.Kind.STASH)
-	assert_eq(target.prompt(), "Open locker")
+	# The prompt is a translation key; the interface runs it through tr().
+	assert_eq(target.prompt(), "PROMPT_STASH")
+	assert_eq(TranslationServer.get_translation_object("en").get_message("PROMPT_STASH"), "Open locker")
 
 
 func test_a_workbench_offers_crafting() -> void:

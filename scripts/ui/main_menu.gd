@@ -4,18 +4,30 @@ extends Control
 ## other than a level, and so the App Store screenshot has a title card.
 
 const GAME_SCENE := "res://scenes/game.tscn"
+const SETTINGS_SCENE := "res://scenes/ui/settings_screen.tscn"
 
-@onready var _title: Label = $Layout/Title
-@onready var _subtitle: Label = $Layout/Subtitle
 @onready var _play: Button = $Layout/Play
+@onready var _continue: Button = $Layout/Continue
+@onready var _settings: Button = $Layout/Settings
 
 
 func _ready() -> void:
-	_title.text = ProjectSettings.get_setting("application/config/name", "Deep Contract")
-	_subtitle.text = "1,800 m below. Contract auto-renewing."
-	_play.pressed.connect(_start)
-	_play.grab_focus()
+	_play.pressed.connect(_start_new)
+	_continue.pressed.connect(_resume)
+	_settings.pressed.connect(_open_settings)
+
+	_continue.disabled = not SaveGame.exists()
+	(_continue if not _continue.disabled else _play).grab_focus()
 
 
-func _start() -> void:
+func _start_new() -> void:
+	SaveGame.delete()
 	get_tree().change_scene_to_file(GAME_SCENE)
+
+
+func _resume() -> void:
+	get_tree().change_scene_to_file(GAME_SCENE)
+
+
+func _open_settings() -> void:
+	get_tree().change_scene_to_file(SETTINGS_SCENE)

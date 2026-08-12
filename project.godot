@@ -16,9 +16,15 @@ config/version="0.1.0"
 run/main_scene="res://scenes/ui/main_menu.tscn"
 config/features=PackedStringArray("4.7", "Mobile")
 
+[audio]
+
+buses/default_bus_layout="res://default_bus_layout.tres"
+
 [autoload]
 
 GameInput="*res://scripts/core/game_input.gd"
+Settings="*res://scripts/core/settings.gd"
+Audio="*res://scripts/core/audio.gd"
 
 [debug]
 
@@ -44,6 +50,15 @@ texture={
 "mipmaps/generate": false,
 "process/fix_alpha_border": false
 }
+
+[internationalization]
+
+locale/translations=PackedStringArray("res://data/locale/ui.en.translation", "res://data/locale/ui.zh.translation")
+locale/fallback="en"
+
+[gui]
+
+theme/default_font="res://assets/theme/default_font.tres"
 
 [input]
 

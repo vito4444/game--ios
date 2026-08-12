@@ -9,7 +9,7 @@ extends CanvasLayer
 signal closed()
 
 const ROW_HEIGHT := 34
-const CARRIED_TITLE := "Carrying  %d/%d slots"
+const CARRIED_TITLE := "%s  %d/%d"
 
 var _session: Session
 var _world: RigWorld
@@ -87,11 +87,14 @@ func _show_stash() -> void:
 		close()
 		return
 
-	_title.text = "Locker"
-	_subtitle.text = "Anything on the shelf is found the moment they look."
-	_left_title.text = CARRIED_TITLE % [_session.inventory.used_slots(), _session.inventory.capacity]
-	_right_title.text = "Locker  shelf %d free, hidden %d free" % [
-		stash.free_shelf_slots(), stash.free_hidden_slots()
+	_title.text = tr("PANEL_LOCKER")
+	_subtitle.text = tr("PANEL_LOCKER_HINT")
+	_left_title.text = CARRIED_TITLE % [
+		tr("PANEL_CARRYING"), _session.inventory.used_slots(), _session.inventory.capacity
+	]
+	_right_title.text = "%s  %s" % [
+		tr("PANEL_LOCKER"),
+		tr("PANEL_LOCKER_SPACE") % [stash.free_shelf_slots(), stash.free_hidden_slots()],
 	]
 
 	_clear(_left_list)
@@ -100,17 +103,17 @@ func _show_stash() -> void:
 			_left_list,
 			_label_for(id),
 			[
-				["Shelf", func() -> void: _store(stash, id, false)],
-				["Hide", func() -> void: _store(stash, id, true)],
+				[tr("PANEL_SHELF"), func() -> void: _store(stash, id, false)],
+				[tr("PANEL_HIDE"), func() -> void: _store(stash, id, true)],
 			]
 		)
 
 	_clear(_right_list)
 	for id in stash.shelf:
-		_add_row(_right_list, _label_for(id), [["Take", func() -> void: _take(stash, id)]])
+		_add_row(_right_list, _label_for(id), [[tr("PANEL_TAKE"), func() -> void: _take(stash, id)]])
 	for id in stash.hidden:
 		_add_row(
-			_right_list, "%s  (hidden)" % _label_for(id), [["Take", func() -> void: _take(stash, id)]]
+			_right_list, "%s  (hidden)" % _label_for(id), [[tr("PANEL_TAKE"), func() -> void: _take(stash, id)]]
 		)
 
 
@@ -134,10 +137,12 @@ func _take(stash: Stash, id: StringName) -> void:
 
 func _show_crafting() -> void:
 	var station := Interaction.station_for(_target.prop)
-	_title.text = String(station).replace("_", " ").capitalize()
-	_subtitle.text = "Technical %d" % _session.stats.level(Stats.TECHNICAL)
-	_left_title.text = CARRIED_TITLE % [_session.inventory.used_slots(), _session.inventory.capacity]
-	_right_title.text = "Can be made here"
+	_title.text = tr("STATION_%s" % String(station).to_upper())
+	_subtitle.text = tr("PANEL_TECHNICAL") % _session.stats.level(Stats.TECHNICAL)
+	_left_title.text = CARRIED_TITLE % [
+		tr("PANEL_CARRYING"), _session.inventory.used_slots(), _session.inventory.capacity
+	]
+	_right_title.text = tr("PANEL_CAN_MAKE")
 
 	_clear(_left_list)
 	for id in _session.inventory.ids():
@@ -146,7 +151,7 @@ func _show_crafting() -> void:
 	_clear(_right_list)
 	var recipes := _session.recipes.at_station(station)
 	if recipes.is_empty():
-		_add_row(_right_list, "Nothing is made at this station.", [])
+		_add_row(_right_list, tr("PANEL_NO_RECIPES"), [])
 	for recipe in recipes:
 		var result := _session.crafting.check(recipe.id, station)
 		var name := _session.items.display_name(recipe.output)
@@ -154,8 +159,8 @@ func _show_crafting() -> void:
 			_add_row(
 				_right_list,
 				name,
-				[["Make", func() -> void: _craft(recipe.id, station)]],
-				"%d min" % recipe.minutes
+				[[tr("PANEL_MAKE"), func() -> void: _craft(recipe.id, station)]],
+				tr("PANEL_MINUTES") % recipe.minutes
 			)
 		else:
 			_add_row(_right_list, name, [], _shortfall_text(recipe, result))
@@ -166,13 +171,14 @@ func _craft(recipe_id: StringName, station: StringName) -> void:
 		return
 	var recipe := _session.recipes.by_id(recipe_id)
 	_session.clock.advance_minutes(recipe.minutes)
+	Audio.play(&"craft_done")
 	_refresh()
 
 
 ## Says what is actually stopping this recipe, rather than listing everything.
 func _shortfall_text(recipe: RecipeBook.Recipe, result: Crafting.Result) -> String:
 	if result == Crafting.Result.NOT_SKILLED_ENOUGH:
-		return "needs Technical %d" % recipe.technical
+		return tr("PANEL_NEEDS_TECHNICAL") % recipe.technical
 	if result != Crafting.Result.MISSING_INPUTS:
 		return Crafting.reason_for(result).to_lower()
 
@@ -181,28 +187,28 @@ func _shortfall_text(recipe: RecipeBook.Recipe, result: Crafting.Result) -> Stri
 		var short: int = int(recipe.required_counts()[id]) - _session.inventory.count_of(id)
 		if short > 0:
 			missing.append("%d x %s" % [short, _session.items.display_name(id)])
-	return "needs " + ", ".join(missing)
+	return tr("PANEL_NEEDS") % ", ".join(missing)
 
 
 # ---------------------------------------------------------------- market
 
 
 func _show_market() -> void:
-	_title.text = "Trader"
-	_subtitle.text = "%d credits" % _session.wallet.balance
-	_left_title.text = "Sell"
-	_right_title.text = "Buy"
+	_title.text = tr("PANEL_TRADER")
+	_subtitle.text = tr("PANEL_CREDITS") % _session.wallet.balance
+	_left_title.text = tr("PANEL_SELL")
+	_right_title.text = tr("PANEL_BUY")
 
 	_clear(_left_list)
 	if _session.inventory.count() == 0:
-		_add_row(_left_list, "Nothing to sell.", [])
+		_add_row(_left_list, tr("PANEL_NOTHING_TO_SELL"), [])
 	for id in _session.inventory.ids():
 		var price := _session.market.sell_price(id)
 		_add_row(
 			_left_list,
 			_label_for(id),
 			[["%d" % price, func() -> void: _sell(id)]],
-			"he pays %d" % price
+			tr("PANEL_HE_PAYS") % price
 		)
 
 	_clear(_right_list)
@@ -213,11 +219,11 @@ func _show_market() -> void:
 				_right_list,
 				_session.items.display_name(id),
 				[["%d" % cost, func() -> void: _buy(id)]],
-				"costs %d" % cost
+				tr("PANEL_COSTS") % cost
 			)
 		else:
 			var reason := (
-				"no room" if not _session.inventory.can_add(id) else "cannot afford %d" % cost
+				tr("PANEL_NO_ROOM") if not _session.inventory.can_add(id) else tr("PANEL_CANNOT_AFFORD") % cost
 			)
 			_add_row(_right_list, _session.items.display_name(id), [], reason)
 
@@ -239,7 +245,9 @@ func _label_for(id: StringName) -> String:
 	var item := _session.items.get_item(id)
 	if item == null:
 		return String(id)
-	return "%s%s" % [item.name, "  *" if item.contraband else ""]
+	return "%s%s" % [
+		_session.items.display_name(id), "  *" if item.contraband else ""
+	]
 
 
 func _clear(list: VBoxContainer) -> void:
@@ -267,6 +275,7 @@ func _add_row(list: VBoxContainer, text: String, actions: Array, subtitle: Strin
 		button.custom_minimum_size = Vector2(58, ROW_HEIGHT)
 		button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		button.add_theme_font_size_override("font_size", 13)
+		button.pressed.connect(func() -> void: Audio.play(&"ui_click"))
 		button.pressed.connect(action[1])
 		row.add_child(button)
 

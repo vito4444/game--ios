@@ -100,7 +100,7 @@ func _work(target: Interaction.Target) -> bool:
 	var job := session.jobs.assigned
 	session.clock.advance_minutes(JobBoard.MINUTES_PER_UNIT)
 	if session.jobs.is_shift_complete():
-		notice.emit("Shift done. Report back at the next muster.")
+		notice.emit(tr("NOTICE_SHIFT_DONE"))
 	else:
 		notice.emit("%s — %d of %d done." % [job.name, session.jobs.units_done, job.units])
 	return true
@@ -108,18 +108,18 @@ func _work(target: Interaction.Target) -> bool:
 
 func _why_not_working(zone: StringName, prop: StringName) -> String:
 	if not session.jobs.on_shift:
-		return "Not on shift."
+		return tr("NOTICE_NOT_ON_SHIFT")
 	if session.jobs.is_shift_complete():
-		return "Shift already finished."
+		return tr("NOTICE_SHIFT_DONE")
 	var here := session.jobs.job_at(zone, prop)
 	if here == null:
-		return "Nothing to do here."
-	return "That is not your assignment."
+		return tr("NOTICE_NOTHING_HERE")
+	return tr("NOTICE_WRONG_POST")
 
 
 func _sleep() -> void:
 	session.clock.advance_to_minute_of_day(WAKE_MINUTE_OF_DAY)
-	notice.emit("You sleep through to the wake-up call.")
+	notice.emit(tr("NOTICE_SLEEP"))
 
 
 func _pick_up(cell: Vector2i) -> void:
@@ -133,6 +133,7 @@ func _pick_up(cell: Vector2i) -> void:
 	map.take_loose_item(cell)
 	session.inventory.add(item_id)
 	_props.erase_cell(cell)
+	Audio.play(&"pick_up")
 	notice.emit("Picked up the %s." % session.items.display_name(item_id))
 
 
@@ -175,6 +176,16 @@ func _start_session() -> void:
 	session.player_released.connect(_on_player_released)
 	session.doors.door_opened.connect(_repaint_door)
 	session.doors.door_closed.connect(_repaint_door)
+	session.doors.door_opened.connect(func(_cell: Vector2i) -> void: Audio.play(&"door_open"))
+	session.doors.door_closed.connect(func(_cell: Vector2i) -> void: Audio.play(&"door_close"))
+	session.oxygen.bottle_spent.connect(func(_left: int) -> void: Audio.play(&"bubble"))
+	session.oxygen.blacked_out.connect(func() -> void: Audio.play(&"out_of_air"))
+	session.escape_routes.escaped.connect(
+		func(_route: EscapeRoutes.Route) -> void: Audio.play(&"escaped")
+	)
+	session.player_detained.connect(
+		func(_reason: String, _taken: Array) -> void: Audio.play(&"caught")
+	)
 	session.stats.changed.connect(_on_stat_changed)
 	session.player_blacked_out.connect(_on_player_blacked_out)
 	session.blackout.started.connect(_on_blackout_started)
@@ -186,18 +197,20 @@ func _start_session() -> void:
 
 func _on_player_blacked_out(cell: Vector2i) -> void:
 	player.global_position = map.cell_centre(cell)
-	notice.emit("You come round in the infirmary.")
+	notice.emit(tr("NOTICE_INFIRMARY"))
 
 
 func _on_blackout_started() -> void:
 	_set_officer_vision(session.blackout.vision_scale())
 	_darkness.visible = true
-	notice.emit("Power dip. Lights and cameras down.")
+	Audio.play(&"blackout")
+	notice.emit(tr("NOTICE_BLACKOUT"))
 
 
 func _on_blackout_ended() -> void:
 	_set_officer_vision(1.0)
 	_darkness.visible = false
+	Audio.play(&"power_restored")
 
 
 func _set_officer_vision(scale: float) -> void:

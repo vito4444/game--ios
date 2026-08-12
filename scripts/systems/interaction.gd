@@ -33,15 +33,16 @@ const TRAINING_STATS := {
 	&"pressure_chamber": Stats.PRESSURE,
 }
 
+## Translation keys; the interface calls tr() on them.
 const PROMPTS := {
-	Kind.STASH: "Open locker",
-	Kind.CRAFT: "Use the bench",
-	Kind.SLEEP: "Sleep until morning",
-	Kind.PICK_UP: "Pick up",
-	Kind.TRADE: "Trade",
-	Kind.TRAIN: "Train",
-	Kind.WORK: "Get on with it",
-	Kind.ESCAPE: "Leave the rig",
+	Kind.STASH: "PROMPT_STASH",
+	Kind.CRAFT: "PROMPT_CRAFT",
+	Kind.SLEEP: "PROMPT_SLEEP",
+	Kind.PICK_UP: "PROMPT_PICK_UP",
+	Kind.TRADE: "PROMPT_TRADE",
+	Kind.TRAIN: "PROMPT_TRAIN",
+	Kind.WORK: "PROMPT_WORK",
+	Kind.ESCAPE: "PROMPT_ESCAPE",
 }
 
 

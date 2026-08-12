@@ -1,0 +1,109 @@
+keys,en,zh
+MENU_TITLE,Deep Contract,海渊契约
+MENU_TAGLINE,"1,800 m below. Contract auto-renewing.",海面下 1800 米。合同自动续期。
+MENU_START,Start a new contract,开始新合同
+MENU_CONTINUE,Continue,继续
+MENU_SETTINGS,Settings,设置
+SETTINGS_TITLE,Settings,设置
+SETTINGS_LANGUAGE,Language,语言
+SETTINGS_MUSIC,Music,音乐
+SETTINGS_EFFECTS,Sound effects,音效
+SETTINGS_BACK,Back,返回
+HUD_SUSPICION,SUSPICION,怀疑度
+HUD_AIR,AIR,氧气
+HUD_DAY,Day %d,第 %d 天
+PANEL_CLOSE,Close,关闭
+PANEL_CARRYING,Carrying,携带
+PANEL_LOCKER,Locker,储物柜
+PANEL_SHELF,Shelf,搁板
+PANEL_HIDE,Hide,藏起
+PANEL_TAKE,Take,取出
+PANEL_MAKE,Make,制作
+PANEL_TRADER,Trader,商人
+PANEL_SELL,Sell,卖出
+PANEL_BUY,Buy,买入
+PROMPT_STASH,Open locker,打开储物柜
+PROMPT_CRAFT,Use the bench,使用工作台
+PROMPT_SLEEP,Sleep until morning,睡到天亮
+PROMPT_PICK_UP,Pick up,拾取
+PROMPT_TRADE,Trade,交易
+PROMPT_TRAIN,Train,训练
+PROMPT_WORK,Get on with it,干活
+PROMPT_ESCAPE,Leave the rig,离开钻台
+OUTCOME_TITLE,Contract terminated,合同终止
+OUTCOME_DAYS,Days on the rig,在钻台的天数
+OUTCOME_DEPARTURE,Time of departure,离开时刻
+OUTCOME_DETAINED,Times detained,被关禁闭次数
+OUTCOME_SEARCHED,Times searched,被搜身次数
+OUTCOME_SUSPICION,Suspicion at the end,最终怀疑度
+OUTCOME_CREDITS,Credits in pocket,剩余积分
+OUTCOME_STATS,Technical / Conditioning / Pressure,技术 / 体能 / 耐压
+OUTCOME_MENU,Back to the title,返回标题
+NOTICE_SLEEP,You sleep through to the wake-up call.,你一觉睡到起床铃响。
+NOTICE_INFIRMARY,You come round in the infirmary.,你在医务室醒来。
+NOTICE_BLACKOUT,Power dip. Lights and cameras down.,电力骤降。照明与监控失效。
+NOTICE_NOT_ON_SHIFT,Not on shift.,现在不是你的班。
+NOTICE_SHIFT_DONE,Shift done. Report back at the next muster.,本班完成。下次点名时归队。
+NOTICE_WRONG_POST,That is not your assignment.,那不是你的岗位。
+NOTICE_NOTHING_HERE,Nothing to do here.,这里没什么可做的。
+PANEL_LOCKER_HINT,Anything on the shelf is found the moment they look.,搁板上的东西，一搜就没。
+PANEL_LOCKER_SPACE,"shelf %d free, hidden %d free",搁板剩 %d，暗格剩 %d
+PANEL_TECHNICAL,Technical %d,技术 %d
+PANEL_CAN_MAKE,Can be made here,此处可制作
+PANEL_NO_RECIPES,Nothing is made at this station.,这个工位做不了东西。
+PANEL_NOTHING_TO_SELL,Nothing to sell.,没有可卖的东西。
+PANEL_CREDITS,%d credits,%d 积分
+PANEL_HE_PAYS,he pays %d,他出 %d
+PANEL_COSTS,costs %d,售价 %d
+PANEL_NO_ROOM,no room,装不下
+PANEL_CANNOT_AFFORD,cannot afford %d,买不起 %d
+PANEL_MINUTES,%d min,%d 分钟
+PANEL_NEEDS_TECHNICAL,needs Technical %d,需要技术 %d
+PANEL_NEEDS,needs %s,还缺 %s
+SCHEDULE_WAKE,Wake,起床
+SCHEDULE_BREAKFAST,Breakfast,早餐
+SCHEDULE_MORNING_MUSTER,Morning muster,晨间点名
+SCHEDULE_SHIFT_START,Shift,当班
+SCHEDULE_LUNCH,Lunch,午餐
+SCHEDULE_FREE_PERIOD,Free period,自由活动
+SCHEDULE_TRAINING_WINDOW,Training window,训练时段
+SCHEDULE_DINNER,Dinner,晚餐
+SCHEDULE_EVENING_MUSTER,Evening muster,晚间点名
+SCHEDULE_LIGHTS_OUT,Lights out,熄灯
+ZONE_BUNK_PODS,Bunk pods,宿舱区
+ZONE_GALLEY,Galley,餐厅
+ZONE_INFIRMARY,Infirmary,医务室
+ZONE_TRAINING_BAY,Training bay,训练区
+ZONE_MUSTER_DECK,Muster deck,集合甲板
+ZONE_SECURITY_OFFICE,Security office,安保室
+ZONE_SOLITARY,Solitary,禁闭室
+ZONE_HANGAR,Hangar,机库
+ZONE_MOON_POOL,Moon pool,月池
+ZONE_WORKSHOP,Workshop,车间
+ZONE_CORRIDOR,Corridor,走廊
+ITEM_RATION,Ration tin,口粮罐头
+ITEM_SCRAP_METAL,Scrap plate,废钢板
+ITEM_WRENCH,Deck wrench,甲板扳手
+ITEM_OXYGEN_BOTTLE,Oxygen bottle,氧气瓶
+ITEM_TORCH_FUEL,Torch fuel,焊枪燃料
+ITEM_CUTTING_TORCH,Cutting torch,切割枪
+ITEM_PRY_BAR,Pry bar,撬棍
+ITEM_NAV_MODULE,Nav module,导航模块
+ITEM_DRIVE_HOUSING,Drive housing,推进器外壳
+ITEM_DRIVE_IMPELLER,Drive impeller,推进器叶轮
+ITEM_DRIVE_CORE,Drive core,推进器核心
+ITEM_BLANK_DOCKET,Blank docket,空白单据
+ITEM_FORGED_DOCKET,Forged rotation docket,伪造轮换单
+ITEM_OFFICER_UNIFORM,Security uniform,安保制服
+ITEM_KEYCARD,Maintenance keycard,维修钥匙卡
+ITEM_REBREATHER,Patched rebreather,改装循环呼吸器
+ITEM_DOOR_SHIM,Door shim,门禁垫片
+ROUTE_SUBMERSIBLE,The submersible,深潜器
+ROUTE_SUPPLY_SUB,The supply sub,补给潜艇
+STAT_CONDITIONING,Conditioning,体能
+STAT_TECHNICAL,Technical,技术
+STAT_PRESSURE,Pressure,耐压
+STATION_WORKBENCH,Workbench,工作台
+STATION_TECHNICAL_TERMINAL,Technical terminal,技术终端
+ROUTE_SUBMERSIBLE_SUMMARY,Rebuild the hangar's one-seat sub and cut your way out to it.,把机库里那台单座潜水器修好，再割开门出去。
+ROUTE_SUPPLY_SUB_SUMMARY,"Walk onto the resupply boat in a uniform, holding paperwork that says you are owed a berth.",穿上制服，拿着写有你名字的舱位单据，直接走上补给艇。

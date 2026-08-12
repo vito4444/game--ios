@@ -50,7 +50,7 @@ func _process(_delta: float) -> void:
 		return
 	_clock_label.text = "Day %d  %s" % [_session.clock.day() + 1, _session.clock.clock_text()]
 	var event := _session.clock.current_event()
-	_activity_label.text = event.label if event != null else ""
+	_activity_label.text = tr(event.label) if event != null else ""
 	var zone := _world.player_zone() if _world != null else &""
 	_zone_label.text = _humanise(zone)
 	_carrying_label.text = "%d/%d" % [
@@ -81,7 +81,7 @@ func _update_prompt() -> void:
 	var target := _world.current_interaction()
 	_prompt.visible = target.is_valid() and _session.player_state.is_free()
 	if _prompt.visible:
-		_prompt.text = target.prompt()
+		_prompt.text = tr(target.prompt())
 
 
 func _show_notice(text: String) -> void:
@@ -102,8 +102,10 @@ func _on_detained(reason: String, seized: Array) -> void:
 
 func _humanise(zone: StringName) -> String:
 	if zone == &"":
-		return "Corridor"
-	return String(zone).replace("_", " ").capitalize()
+		return tr("ZONE_CORRIDOR")
+	var key := "ZONE_%s" % String(zone).to_upper()
+	var translated := TranslationServer.translate(key)
+	return String(zone).replace("_", " ").capitalize() if translated == key else translated
 
 
 func _on_suspicion_changed(value: int) -> void:

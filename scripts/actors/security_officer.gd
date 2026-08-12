@@ -141,6 +141,7 @@ func _look() -> void:
 	_last_seen_cell = player_cell
 	if state != State.CHASE:
 		spotted_player.emit(report)
+		Audio.play(&"alarm")
 		_session.suspicion.add(report.suspicion_cost())
 		_session.player_state.begin_pursuit()
 		state = State.CHASE

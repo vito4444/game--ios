@@ -33,6 +33,12 @@ func total_minutes() -> int:
 	return int(_total_minutes)
 
 
+## Restores the clock without replaying a save's worth of scheduled events.
+func set_total_minutes(minutes: int) -> void:
+	_total_minutes = float(minutes)
+	_last_whole_minute = minutes
+
+
 func minute_of_day() -> int:
 	return total_minutes() % MINUTES_PER_DAY
 

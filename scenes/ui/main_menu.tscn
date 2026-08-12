@@ -27,26 +27,46 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -140.0
-offset_top = -60.0
-offset_right = 140.0
-offset_bottom = 60.0
+offset_left = -130.0
+offset_top = -92.0
+offset_right = 130.0
+offset_bottom = 92.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 12
-alignment = 1
+theme_override_constants/separation = 10
 
 [node name="Title" type="Label" parent="Layout"]
 layout_mode = 2
-text = "Deep Contract"
+theme_override_colors/font_color = Color(0.94902, 0.65098, 0.35294, 1)
+theme_override_font_sizes/font_size = 24
+text = "MENU_TITLE"
 horizontal_alignment = 1
 
-[node name="Subtitle" type="Label" parent="Layout"]
+[node name="Tagline" type="Label" parent="Layout"]
 layout_mode = 2
-text = "1,800 m below. Contract auto-renewing."
+theme_override_colors/font_color = Color(0.65882, 0.64314, 0.72157, 1)
+theme_override_font_sizes/font_size = 12
+text = "MENU_TAGLINE"
 horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="Layout"]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
 
 [node name="Play" type="Button" parent="Layout"]
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(0, 34)
 layout_mode = 2
-text = "Start shift"
+theme_override_font_sizes/font_size = 14
+text = "MENU_START"
+
+[node name="Continue" type="Button" parent="Layout"]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "MENU_CONTINUE"
+
+[node name="Settings" type="Button" parent="Layout"]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "MENU_SETTINGS"

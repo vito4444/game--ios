@@ -56,7 +56,7 @@ theme_override_constants/separation = 6
 layout_mode = 2
 theme_override_colors/font_color = Color(0.94902, 0.65098, 0.35294, 1)
 theme_override_font_sizes/font_size = 18
-text = "Contract terminated"
+text = "OUTCOME_TITLE"
 
 [node name="Route" type="Label" parent="Root/Frame/Layout"]
 layout_mode = 2
@@ -81,4 +81,4 @@ theme_override_constants/separation = 3
 custom_minimum_size = Vector2(0, 34)
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
-text = "Back to the title"
+text = "OUTCOME_MENU"

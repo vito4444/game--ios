@@ -18,7 +18,7 @@ env:
 
 jobs:
   art:
-    name: Generated art is reproducible
+    name: Generated art and audio are reproducible
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -34,6 +34,9 @@ jobs:
 
       - name: Committed art matches the generator
         run: python3 tools/gen_art.py --check
+
+      - name: Committed audio matches the generator
+        run: python3 tools/gen_audio.py --check
 
   godot:
     name: Import check and unit tests
