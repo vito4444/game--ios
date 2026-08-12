@@ -193,7 +193,44 @@ def escaped() -> list[float]:
     )
 
 
+def ambience() -> list[float]:
+    """Twenty seconds of rig, looped.
+
+    Not music so much as the building: a low hull drone, the pump beating under
+    it, and water noise on top. Written to loop by holding the envelope flat and
+    cross-fading the last second back into the first.
+    """
+    seconds = 20.0
+    total = int(SAMPLE_RATE * seconds)
+    flat: Envelope = lambda _position: 1.0
+
+    layers = _mix(
+        [value * 0.5 for value in _tone(55.0, seconds, flat)],
+        [value * 0.22 for value in _tone(82.5, seconds, flat)],
+        [value * 0.10 for value in _tone(110.0, seconds, flat)],
+        [value * 0.16 for value in _noise(seconds, flat, seed=91, smoothing=180)],
+    )
+
+    # A slow pump, one beat every four seconds.
+    for beat in range(int(seconds // 4)):
+        start = int(beat * 4.0 * SAMPLE_RATE)
+        thump = _tone(48.0, 0.6, _adsr(0.05, 0.2, 0.4, 0.5), ((1.0, 1.0), (2.0, 0.2)))
+        for index, value in enumerate(thump):
+            if start + index < total:
+                layers[start + index] += value * 0.35
+
+    # Cross-fade the tail into the head so the loop point is inaudible.
+    fade = int(SAMPLE_RATE * 1.0)
+    for index in range(fade):
+        blend = index / fade
+        head = layers[index]
+        tail = layers[total - fade + index]
+        layers[total - fade + index] = tail * (1.0 - blend) + head * blend
+    return layers[: total - fade]
+
+
 SOUNDS: tuple[tuple[str, Callable[[], list[float]]], ...] = (
+    ("ambience", ambience),
     ("ui_click", ui_click),
     ("ui_back", ui_back),
     ("door_open", door_open),

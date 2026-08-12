@@ -187,6 +187,7 @@ func test_every_generated_sound_is_a_loadable_wav() -> void:
 
 func test_the_sounds_the_game_asks_for_all_exist() -> void:
 	var required: Array[StringName] = [
+		Audio.AMBIENCE,
 		&"ui_click",
 		&"door_open",
 		&"door_close",
@@ -207,3 +208,11 @@ func test_the_sounds_the_game_asks_for_all_exist() -> void:
 func test_the_audio_buses_the_settings_control_exist() -> void:
 	assert_gt(AudioServer.get_bus_index(Settings.MUSIC_BUS), 0)
 	assert_gt(AudioServer.get_bus_index(Settings.EFFECTS_BUS), 0)
+
+
+func test_the_music_slider_has_something_to_control() -> void:
+	# The rig ambience is what the Music bus carries; without it the slider in
+	# the settings screen would do nothing.
+	var stream := load("%s/%s.wav" % [Audio.DIRECTORY, Audio.AMBIENCE]) as AudioStreamWAV
+	assert_not_null(stream)
+	assert_gt(stream.get_length(), 10.0, "the loop is too short to sit under a shift")

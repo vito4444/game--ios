@@ -16,6 +16,7 @@ const MAIN_MENU := "res://scenes/ui/main_menu.tscn"
 
 
 func _ready() -> void:
+	Audio.start_ambience()
 	hud.bind(rig)
 	interaction_panel.bind(rig)
 	outcome_screen.bind(rig)

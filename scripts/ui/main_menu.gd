@@ -12,6 +12,7 @@ const SETTINGS_SCENE := "res://scenes/ui/settings_screen.tscn"
 
 
 func _ready() -> void:
+	Audio.start_ambience()
 	_play.pressed.connect(_start_new)
 	_continue.pressed.connect(_resume)
 	_settings.pressed.connect(_open_settings)
