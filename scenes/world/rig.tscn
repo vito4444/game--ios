@@ -17,3 +17,7 @@ y_sort_enabled = true
 y_sort_enabled = true
 
 [node name="Camera" type="Camera2D" parent="."]
+
+[node name="Darkness" type="CanvasModulate" parent="."]
+visible = false
+color = Color(0.29804, 0.36078, 0.44706, 1)

@@ -46,10 +46,15 @@ var wallet: Wallet
 var jobs: JobBoard
 var market: Market
 var escape_routes: EscapeRoutes
+var oxygen: Oxygen
+var blackout: Blackout
 
 ## Counters the outcome screen reports on.
 var times_detained: int = 0
 var times_searched: int = 0
+var times_blacked_out: int = 0
+
+var _infirmary_minutes_left: int = 0
 var player_state: PlayerState
 var stashes: Dictionary = {}
 var errors: PackedStringArray = PackedStringArray()
@@ -92,6 +97,10 @@ func _init(
 
 	escape_routes = EscapeRoutes.load_from(ROUTES_PATH, inventory, player_state, items)
 	errors.append_array(escape_routes.errors)
+
+	oxygen = Oxygen.new(stats, inventory)
+	oxygen.blacked_out.connect(_on_blacked_out)
+	blackout = Blackout.new(clock)
 
 	_build_stashes()
 	_seed_security_uniform()
@@ -139,8 +148,41 @@ func bind_player_locator(locator: Callable) -> void:
 	roll_call.bind_player_locator(locator)
 
 
+signal player_blacked_out(cell: Vector2i)
+
+## How much of a sentence is served while unconscious in the infirmary.
+const INFIRMARY_MINUTES := 90
+
+
 func tick(delta_seconds: float) -> void:
 	clock.tick(delta_seconds)
+	blackout.tick(delta_seconds)
+
+
+## Advances oxygen for a player standing at `cell`.
+func tick_oxygen(delta_seconds: float, cell: Vector2i) -> void:
+	if not player_state.is_free() and player_state.state != PlayerState.PURSUED:
+		return
+	oxygen.tick(delta_seconds, map.cell_has_flag(cell, Oxygen.UNPRESSURISED_FLAG))
+
+
+func infirmary_cell() -> Vector2i:
+	var infirmary := map.zone_by_id(&"infirmary")
+	if infirmary == null:
+		return map.spawn
+	return infirmary.rect.position + infirmary.rect.size / 2
+
+
+func _on_blacked_out() -> void:
+	if player_state.state == PlayerState.UNCONSCIOUS:
+		return
+	player_state.knock_out()
+	# Waking up in the infirmary costs time, and anything that was not yours
+	# has been logged and taken by the time you come round.
+	inventory.confiscate_contraband()
+	_infirmary_minutes_left = INFIRMARY_MINUTES
+	times_blacked_out += 1
+	player_blacked_out.emit(infirmary_cell())
 
 
 ## The zone a world position falls in, or &"" outside every room.
@@ -178,6 +220,14 @@ func _on_player_searched(_seized: Array) -> void:
 
 
 func _on_minute_passed(_minute_of_day: int, _day: int) -> void:
+	if player_state.state == PlayerState.UNCONSCIOUS:
+		_infirmary_minutes_left -= 1
+		if _infirmary_minutes_left <= 0:
+			oxygen.refill()
+			player_state.revive()
+			player_released.emit()
+		return
+
 	if player_state.state != PlayerState.SOLITARY:
 		return
 	player_state.serve_time(1)

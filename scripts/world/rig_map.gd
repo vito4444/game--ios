@@ -11,14 +11,26 @@ class Zone:
 	var id: StringName
 	var kind: StringName
 	var rect: Rect2i
+	## Optional extra labels, e.g. `unpressurised`. A zone has exactly one kind
+	## but can carry any number of these.
+	var flags: Array[StringName] = []
 
-	func _init(zone_id: StringName, zone_kind: StringName, zone_rect: Rect2i) -> void:
+	func _init(
+		zone_id: StringName,
+		zone_kind: StringName,
+		zone_rect: Rect2i,
+		zone_flags: Array[StringName] = []
+	) -> void:
 		id = zone_id
 		kind = zone_kind
 		rect = zone_rect
+		flags = zone_flags
 
 	func contains(cell: Vector2i) -> bool:
 		return rect.has_point(cell)
+
+	func has_flag(flag: StringName) -> bool:
+		return flags.has(flag)
 
 
 class Patrol:
@@ -167,6 +179,19 @@ func zones_of_kind(kind: StringName) -> Array[Zone]:
 	return found
 
 
+func zones_with_flag(flag: StringName) -> Array[Zone]:
+	var found: Array[Zone] = []
+	for zone in zones:
+		if zone.has_flag(flag):
+			found.append(zone)
+	return found
+
+
+func cell_has_flag(cell: Vector2i, flag: StringName) -> bool:
+	var zone := zone_at(cell)
+	return zone != null and zone.has_flag(flag)
+
+
 func pixel_size() -> Vector2i:
 	return Vector2i(width, height) * TileCatalog.TILE_SIZE
 
@@ -246,16 +271,22 @@ func _parse_zone(line: String) -> void:
 		errors.append("malformed zone line: %s" % line)
 		return
 	var fields := parts[1].strip_edges().split(",")
-	if fields.size() != 5:
-		errors.append("zone needs x,y,w,h,kind: %s" % line)
+	if fields.size() < 5:
+		errors.append("zone needs x,y,w,h,kind[,flags...]: %s" % line)
 		return
+
+	var flags: Array[StringName] = []
+	for index in range(5, fields.size()):
+		flags.append(StringName(fields[index].strip_edges()))
+
 	zones.append(
 		Zone.new(
 			StringName(parts[0].strip_edges()),
 			StringName(fields[4].strip_edges()),
 			Rect2i(
 				fields[0].to_int(), fields[1].to_int(), fields[2].to_int(), fields[3].to_int()
-			)
+			),
+			flags
 		)
 	)
 

@@ -13,6 +13,9 @@ const ROLL_CALL_PROMPT := "MUSTER — report to %s by %02d:%02d"
 @onready var _suspicion_bar: ProgressBar = $Bar/Margin/Row/Suspicion
 @onready var _alert: Label = $Alert
 @onready var _prompt: Label = $Prompt
+@onready var _air: VBoxContainer = $Air
+@onready var _air_label: Label = $Air/Label
+@onready var _air_gauge: ProgressBar = $Air/Gauge
 
 var _session: Session
 var _world: RigWorld
@@ -36,6 +39,7 @@ func _attach(session: Session) -> void:
 	session.roll_call.missed.connect(_on_roll_call_missed)
 	session.shakedown.player_searched.connect(_on_searched)
 	session.player_detained.connect(_on_detained)
+	session.blackout.started.connect(func() -> void: _show_notice("Power dip."))
 	_on_suspicion_changed(session.suspicion.value)
 	_alert.visible = false
 	_prompt.visible = false
@@ -54,10 +58,21 @@ func _process(_delta: float) -> void:
 	]
 	_credits_label.text = "%dc" % _session.wallet.balance
 	_update_prompt()
+	_update_air()
 
 	if _notice_until > 0.0 and Time.get_ticks_msec() / 1000.0 > _notice_until:
 		_notice_until = 0.0
 		_alert.visible = false
+
+
+func _update_air() -> void:
+	## Only shown when it matters: outside the hull, or while the bottle refills.
+	var oxygen := _session.oxygen
+	_air.visible = oxygen.exposed or oxygen.fraction() < 1.0
+	if not _air.visible:
+		return
+	_air_gauge.value = oxygen.fraction()
+	_air_label.text = "AIR  %ds" % int(ceilf(oxygen.seconds_left))
 
 
 func _update_prompt() -> void:

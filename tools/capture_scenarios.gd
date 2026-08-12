@@ -19,7 +19,20 @@ const SCENARIOS := [
 	{"name": "galley", "cell": Vector2i(20, 4), "minute": 12 * 60 + 10, "suspicion": 10},
 	{"name": "corridor_patrol", "cell": Vector2i(8, 11), "minute": 14 * 60, "suspicion": 40},
 	{"name": "moon_pool", "cell": Vector2i(24, 27), "minute": 16 * 60, "suspicion": 60},
-	{"name": "hangar", "cell": Vector2i(8, 29), "minute": 22 * 60 + 30, "suspicion": 85},
+	{
+		"name": "hangar_no_air",
+		"cell": Vector2i(8, 29),
+		"minute": 22 * 60 + 30,
+		"suspicion": 85,
+		"drain_air": 26.0,
+	},
+	{
+		"name": "blackout",
+		"cell": Vector2i(20, 11),
+		"minute": 13 * 60 + 59,
+		"suspicion": 45,
+		"blackout": true,
+	},
 	{
 		"name": "locker_panel",
 		"cell": Vector2i(2, 2),
@@ -107,5 +120,10 @@ func _stage(rig: Node, scenario: Dictionary) -> void:
 	if scenario.has("face"):
 		rig.player.face(scenario["face"])
 	rig.session.inventory.clear()
+	rig.session.oxygen.refill()
+	if scenario.has("drain_air"):
+		rig.session.oxygen.tick(scenario["drain_air"], true)
+	if scenario.get("blackout", false):
+		rig.session.blackout.begin()
 	for item in scenario.get("give", []):
 		rig.session.inventory.add(StringName(item))

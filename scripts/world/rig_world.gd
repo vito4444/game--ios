@@ -24,6 +24,7 @@ const TRAINING_MINUTES := 45
 @onready var _props: TileMapLayer = $YSort/Props
 @onready var _actors: Node2D = $YSort/Actors
 @onready var _camera: Camera2D = $Camera
+@onready var _darkness: CanvasModulate = $Darkness
 
 var map: RigMap
 var session: Session
@@ -175,9 +176,33 @@ func _start_session() -> void:
 	session.doors.door_opened.connect(_repaint_door)
 	session.doors.door_closed.connect(_repaint_door)
 	session.stats.changed.connect(_on_stat_changed)
+	session.player_blacked_out.connect(_on_player_blacked_out)
+	session.blackout.started.connect(_on_blackout_started)
+	session.blackout.ended.connect(_on_blackout_ended)
 	_apply_conditioning()
 	_spawn_officers()
 	session_started.emit(session)
+
+
+func _on_player_blacked_out(cell: Vector2i) -> void:
+	player.global_position = map.cell_centre(cell)
+	notice.emit("You come round in the infirmary.")
+
+
+func _on_blackout_started() -> void:
+	_set_officer_vision(session.blackout.vision_scale())
+	_darkness.visible = true
+	notice.emit("Power dip. Lights and cameras down.")
+
+
+func _on_blackout_ended() -> void:
+	_set_officer_vision(1.0)
+	_darkness.visible = false
+
+
+func _set_officer_vision(scale: float) -> void:
+	for officer in officers:
+		officer.cone = Vision.Cone.new().scaled(scale)
 
 
 func _on_stat_changed(stat: StringName, _value: int) -> void:
@@ -205,7 +230,14 @@ func _repaint_door(cell: Vector2i) -> void:
 func _update_doors() -> void:
 	var approaches: Array[Dictionary] = []
 	if player != null and session.player_state.state != PlayerState.SOLITARY:
-		approaches.append({"cell": Vector2(player.cell()), "staff": false})
+		# A door shim makes a pressure hatch believe the player is authorised,
+		# which is the only way into the hangar without a security escort.
+		approaches.append(
+			{
+				"cell": Vector2(player.cell()),
+				"staff": session.inventory.has(DoorSystem.OVERRIDE_ITEM),
+			}
+		)
 	for officer in officers:
 		approaches.append({"cell": Vector2(officer.cell()), "staff": true})
 	session.doors.update(approaches)
@@ -280,6 +312,7 @@ func _configure_camera() -> void:
 func _process(delta: float) -> void:
 	if session != null:
 		session.tick(delta)
+		session.tick_oxygen(delta, player.cell())
 		_update_doors()
 	_follow_player()
 

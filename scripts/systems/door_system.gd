@@ -14,6 +14,9 @@ signal door_closed(cell: Vector2i)
 ## How close, in tiles, someone has to be for a door to notice them.
 const TRIGGER_RADIUS := 1.6
 
+## Carrying this makes a pressure hatch treat the player as authorised.
+const OVERRIDE_ITEM := &"door_shim"
+
 
 class Door:
 	var cell: Vector2i

@@ -93,7 +93,8 @@ W:::::::::::::::::#~~oooooooo~~#:::::::::::W
 [spawn]
 player = 2,2
 
-# zone = x,y,width,height,kind
+# zone = x,y,width,height,kind[,flags...]
+# flags: unpressurised = needs a bottle of air to enter
 [zones]
 solitary = 38,18,5,4,solitary
 bunk_pods = 1,1,13,8,quarters
@@ -102,7 +103,7 @@ infirmary = 30,1,13,8,infirmary
 training_bay = 1,14,13,8,training
 muster_deck = 15,14,14,8,muster
 security_office = 30,14,13,8,restricted
-hangar = 1,27,17,6,restricted
+hangar = 1,27,17,6,restricted,unpressurised
 moon_pool = 19,27,12,6,moonpool
 workshop = 32,27,11,6,workshop
 
