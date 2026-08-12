@@ -21,8 +21,9 @@ func _ready() -> void:
 	interaction_panel.bind(rig)
 	outcome_screen.bind(rig)
 	_restore()
-	# Runs only under the automated capture flag.
+	# Both no-ops unless the automated capture flag is set.
 	Diagnostics.report(rig)
+	Diagnostics.attach_texture_probe(self)
 
 
 func _notification(what: int) -> void:

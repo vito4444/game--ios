@@ -9,6 +9,13 @@ extends RefCounted
 
 const ENABLE_ENV := "DEEPCONTRACT_AUTOSTART"
 
+## Written as well as printed: Godot's print goes to stdout, which `simctl
+## launch` does not capture unless it stays in the foreground, so the file is
+## the only way the CI job gets these back off the device.
+const LOG_PATH := "user://diagnostics.log"
+
+static var _lines: PackedStringArray = PackedStringArray()
+
 
 static func enabled() -> bool:
 	return OS.get_environment(ENABLE_ENV) == "1"
@@ -17,6 +24,7 @@ static func enabled() -> bool:
 static func report(world: RigWorld) -> void:
 	if not enabled():
 		return
+	_lines.clear()
 
 	var viewport := world.get_viewport()
 	var camera := world.camera()
@@ -76,6 +84,40 @@ static func report(world: RigWorld) -> void:
 		str(ProjectSettings.get_setting("rendering/environment/defaults/default_clear_color"))
 	)
 
+	_flush()
+
+
+## Draws the terrain atlas straight onto a CanvasLayer, bypassing the world and
+## its camera entirely.
+##
+## If this shows and the world does not, the textures are fine and the problem
+## is in the Node2D path. If neither shows, the texture never made it onto the
+## device in a form the driver accepts. One capture answers which.
+static func attach_texture_probe(parent: Node) -> void:
+	if not enabled():
+		return
+
+	var layer := CanvasLayer.new()
+	layer.layer = 10
+	layer.name = "DiagnosticProbe"
+	parent.add_child(layer)
+
+	var texture: Texture2D = load(TileCatalog.TERRAIN_TEXTURE)
+	var probe := TextureRect.new()
+	probe.texture = texture
+	probe.position = Vector2(180, 44)
+	probe.size = texture.get_size()
+	layer.add_child(probe)
+
+	var label := Label.new()
+	label.text = "probe: terrain atlas %s" % texture.get_size()
+	label.position = Vector2(180, 44 + texture.get_size().y + 2)
+	label.add_theme_font_size_override("font_size", 10)
+	layer.add_child(label)
+
+	_line("probe", "attached %s" % texture.get_size())
+	_flush()
+
 
 static func get_window_stretch_mode() -> String:
 	return "%s/%s" % [
@@ -85,5 +127,15 @@ static func get_window_stretch_mode() -> String:
 
 
 static func _line(label: String, value: String) -> void:
-	# Prefixed so the CI step can grep it out of the device log.
-	print("[diag] %-18s %s" % [label, value])
+	# Prefixed so the CI step can grep it out.
+	var text := "[diag] %-18s %s" % [label, value]
+	print(text)
+	_lines.append(text)
+
+
+static func _flush() -> void:
+	var file := FileAccess.open(LOG_PATH, FileAccess.WRITE)
+	if file == null:
+		return
+	file.store_string("\n".join(_lines) + "\n")
+	file.close()

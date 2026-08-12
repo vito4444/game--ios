@@ -167,15 +167,19 @@ jobs:
           sleep 25
           xcrun simctl io "$udid" screenshot build/simulator-capture/02-in-game.png
 
-      - name: Collect the device log
+      - name: Collect the diagnostics the game wrote
         if: always()
         run: |
           udid="${{ steps.device.outputs.udid }}"
-          xcrun simctl spawn "$udid" log show --last 3m \
-            --predicate 'process == "DeepContract"' --style compact \
-            > build/simulator-capture/device.log 2>&1 || true
+          # Godot prints to stdout, which simctl does not capture unless it
+          # stays in the foreground, so the game writes the same lines to a
+          # file inside its own container.
+          container=$(xcrun simctl get_app_container "$udid" "${{ env.BUNDLE_ID }}" data)
+          echo "container: $container"
+          find "$container" -name "diagnostics.log" -exec cp {} \
+            build/simulator-capture/diagnostics.log \; 2>/dev/null || true
           echo "--- diagnostics reported by the game ---"
-          grep "\[diag\]" build/simulator-capture/device.log || echo "(none)"
+          cat build/simulator-capture/diagnostics.log 2>/dev/null || echo "(no diagnostics file)"
 
       - name: Turn the captures upright
         run: |
