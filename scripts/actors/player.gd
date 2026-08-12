@@ -9,6 +9,9 @@ const SHEET := "res://assets/generated/actors/player.png"
 ## 45-second blackout is a real decision rather than a formality.
 const BASE_SPEED := 68.0
 
+## Raised by Conditioning. Set by the world when the stat changes.
+var speed_multiplier: float = 1.0
+
 @onready var _sprite: CharacterSprite = $Sprite
 
 
@@ -16,9 +19,13 @@ func _ready() -> void:
 	_sprite.set_sheet(SHEET)
 
 
+func speed() -> float:
+	return BASE_SPEED * speed_multiplier
+
+
 func _physics_process(delta: float) -> void:
 	var direction := GameInput.movement()
-	velocity = direction * BASE_SPEED
+	velocity = direction * speed()
 	move_and_slide()
 	_sprite.update_animation(velocity, delta)
 

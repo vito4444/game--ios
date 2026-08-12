@@ -9,6 +9,7 @@ const ROLL_CALL_PROMPT := "MUSTER — report to %s by %02d:%02d"
 @onready var _activity_label: Label = $Bar/Margin/Row/Activity
 @onready var _zone_label: Label = $Bar/Margin/Row/Zone
 @onready var _carrying_label: Label = $Bar/Margin/Row/Carrying
+@onready var _credits_label: Label = $Bar/Margin/Row/Credits
 @onready var _suspicion_bar: ProgressBar = $Bar/Margin/Row/Suspicion
 @onready var _alert: Label = $Alert
 @onready var _prompt: Label = $Prompt
@@ -51,6 +52,7 @@ func _process(_delta: float) -> void:
 	_carrying_label.text = "%d/%d" % [
 		_session.inventory.used_slots(), _session.inventory.capacity
 	]
+	_credits_label.text = "%dc" % _session.wallet.balance
 	_update_prompt()
 
 	if _notice_until > 0.0 and Time.get_ticks_msec() / 1000.0 > _notice_until:

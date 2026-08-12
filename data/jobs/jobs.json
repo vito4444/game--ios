@@ -1,0 +1,38 @@
+{
+	"comment": "Rig work assignments. A shift is `units` interactions at the named prop inside the named zone; finishing all of them pays `pay` in full. `salvage` is the chance per unit of pocketing the listed item, which is how most crafting material enters the game.",
+	"jobs": [
+		{
+			"id": "welding",
+			"name": "Welding bay",
+			"zone": "workshop",
+			"station": "workbench",
+			"pay": 60,
+			"units": 6,
+			"stat": "technical",
+			"salvage": "scrap_metal",
+			"salvage_chance": 0.5
+		},
+		{
+			"id": "sludge",
+			"name": "Sludge line",
+			"zone": "moon_pool",
+			"station": "crate",
+			"pay": 48,
+			"units": 6,
+			"stat": "conditioning",
+			"salvage": "torch_fuel",
+			"salvage_chance": 0.25
+		},
+		{
+			"id": "galley",
+			"name": "Galley duty",
+			"zone": "galley",
+			"station": "table",
+			"pay": 30,
+			"units": 6,
+			"stat": "conditioning",
+			"salvage": "ration",
+			"salvage_chance": 0.6
+		}
+	]
+}

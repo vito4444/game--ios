@@ -72,6 +72,8 @@ func _refresh() -> void:
 			_show_stash()
 		Interaction.Kind.CRAFT:
 			_show_crafting()
+		Interaction.Kind.TRADE:
+			_show_market()
 		_:
 			close()
 
@@ -180,6 +182,54 @@ func _shortfall_text(recipe: RecipeBook.Recipe, result: Crafting.Result) -> Stri
 		if short > 0:
 			missing.append("%d x %s" % [short, _session.items.display_name(id)])
 	return "needs " + ", ".join(missing)
+
+
+# ---------------------------------------------------------------- market
+
+
+func _show_market() -> void:
+	_title.text = "Trader"
+	_subtitle.text = "%d credits" % _session.wallet.balance
+	_left_title.text = "Sell"
+	_right_title.text = "Buy"
+
+	_clear(_left_list)
+	if _session.inventory.count() == 0:
+		_add_row(_left_list, "Nothing to sell.", [])
+	for id in _session.inventory.ids():
+		var price := _session.market.sell_price(id)
+		_add_row(
+			_left_list,
+			_label_for(id),
+			[["%d" % price, func() -> void: _sell(id)]],
+			"he pays %d" % price
+		)
+
+	_clear(_right_list)
+	for id in _session.market.stock():
+		var cost := _session.market.buy_price(id)
+		if _session.market.can_buy(id):
+			_add_row(
+				_right_list,
+				_session.items.display_name(id),
+				[["%d" % cost, func() -> void: _buy(id)]],
+				"costs %d" % cost
+			)
+		else:
+			var reason := (
+				"no room" if not _session.inventory.can_add(id) else "cannot afford %d" % cost
+			)
+			_add_row(_right_list, _session.items.display_name(id), [], reason)
+
+
+func _buy(id: StringName) -> void:
+	if _session.market.buy(id):
+		_refresh()
+
+
+func _sell(id: StringName) -> void:
+	if _session.market.sell(id):
+		_refresh()
 
 
 # ---------------------------------------------------------------- rows

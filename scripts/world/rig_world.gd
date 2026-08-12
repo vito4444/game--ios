@@ -55,10 +55,45 @@ func _on_interact() -> void:
 			_pick_up(target.cell)
 		Interaction.Kind.TRAIN:
 			_train(target)
+		Interaction.Kind.WORK:
+			_work(target)
+		Interaction.Kind.CRAFT:
+			# A workbench is the welding post as well as a crafting station, so
+			# during a shift the job takes precedence over private projects.
+			if not _work(target):
+				interaction_requested.emit(target)
 		Interaction.Kind.NONE:
 			pass
 		_:
 			interaction_requested.emit(target)
+
+
+## Returns true when this counted as a unit of the player's shift.
+func _work(target: Interaction.Target) -> bool:
+	var zone := player_zone()
+	if not session.jobs.work(zone, target.prop):
+		if target.kind == Interaction.Kind.WORK:
+			notice.emit(_why_not_working(zone, target.prop))
+		return false
+
+	var job := session.jobs.assigned
+	session.clock.advance_minutes(JobBoard.MINUTES_PER_UNIT)
+	if session.jobs.is_shift_complete():
+		notice.emit("Shift done. Report back at the next muster.")
+	else:
+		notice.emit("%s — %d of %d done." % [job.name, session.jobs.units_done, job.units])
+	return true
+
+
+func _why_not_working(zone: StringName, prop: StringName) -> String:
+	if not session.jobs.on_shift:
+		return "Not on shift."
+	if session.jobs.is_shift_complete():
+		return "Shift already finished."
+	var here := session.jobs.job_at(zone, prop)
+	if here == null:
+		return "Nothing to do here."
+	return "That is not your assignment."
 
 
 func _sleep() -> void:
@@ -119,8 +154,20 @@ func _start_session() -> void:
 	session.player_released.connect(_on_player_released)
 	session.doors.door_opened.connect(_repaint_door)
 	session.doors.door_closed.connect(_repaint_door)
+	session.stats.changed.connect(_on_stat_changed)
+	_apply_conditioning()
 	_spawn_officers()
 	session_started.emit(session)
+
+
+func _on_stat_changed(stat: StringName, _value: int) -> void:
+	if stat == Stats.CONDITIONING:
+		_apply_conditioning()
+
+
+func _apply_conditioning() -> void:
+	if player != null:
+		player.speed_multiplier = session.stats.speed_multiplier()
 
 
 func _repaint_door(cell: Vector2i) -> void:

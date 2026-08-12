@@ -23,6 +23,13 @@ const MAXIMUM := 10
 ## Training sessions needed to gain a level, and it gets harder as you climb.
 const SESSIONS_PER_LEVEL := 3
 
+## Movement gained per level of Conditioning, as a fraction of base speed.
+const CONDITIONING_SPEED_BONUS := 0.06
+
+## Seconds of air in a bottle at Pressure 1, and the fraction added per level.
+const BASE_OXYGEN_SECONDS := 40.0
+const PRESSURE_OXYGEN_BONUS := 0.25
+
 var _levels: Dictionary = {}
 var _progress: Dictionary = {}
 
@@ -75,6 +82,15 @@ func train(stat: StringName) -> bool:
 
 func meets(stat: StringName, required: int) -> bool:
 	return level(stat) >= required
+
+
+func speed_multiplier() -> float:
+	return 1.0 + CONDITIONING_SPEED_BONUS * (level(CONDITIONING) - 1)
+
+
+## How long one bottle lasts outside a pressurised compartment.
+func oxygen_seconds() -> float:
+	return BASE_OXYGEN_SECONDS * (1.0 + PRESSURE_OXYGEN_BONUS * (level(PRESSURE) - 1))
 
 
 func to_dictionary() -> Dictionary:

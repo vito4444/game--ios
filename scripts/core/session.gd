@@ -13,6 +13,10 @@ signal player_released()
 const SCHEDULE_PATH := "res://data/schedule/daily.json"
 const ITEMS_PATH := "res://data/items/items.json"
 const RECIPES_PATH := "res://data/recipes/recipes.json"
+const JOBS_PATH := "res://data/jobs/jobs.json"
+
+## The assignment a new contract starts on.
+const STARTING_JOB := &"welding"
 
 ## Rig time when a new contract starts: woken for the first shift.
 const START_MINUTE_OF_DAY := 6 * 60
@@ -33,6 +37,9 @@ var inventory: Inventory
 var stats: Stats
 var crafting: Crafting
 var shakedown: Shakedown
+var wallet: Wallet
+var jobs: JobBoard
+var market: Market
 var player_state: PlayerState
 var stashes: Dictionary = {}
 var errors: PackedStringArray = PackedStringArray()
@@ -65,6 +72,13 @@ func _init(
 	stats = Stats.new()
 	crafting = Crafting.new(recipes, inventory, stats)
 	player_state = PlayerState.new()
+	wallet = Wallet.new()
+
+	jobs = JobBoard.load_from(JOBS_PATH, wallet, inventory, stats, search_seed)
+	errors.append_array(jobs.errors)
+	jobs.assign(STARTING_JOB)
+
+	market = Market.new(items, inventory, wallet)
 
 	_build_stashes()
 	shakedown = Shakedown.new(inventory, suspicion, stashes, search_seed)
@@ -144,3 +158,7 @@ func _on_muster_attended(_event: Schedule.Event) -> void:
 func _on_event_started(event: Schedule.Event) -> void:
 	if event.id == Shakedown.SWEEP_EVENT:
 		shakedown.sweep_lockers()
+	if event.id == JobBoard.SHIFT_EVENT:
+		jobs.begin_shift()
+	elif event.id == JobBoard.SHIFT_END_EVENT:
+		jobs.settle()

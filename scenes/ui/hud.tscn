@@ -79,6 +79,14 @@ theme_override_font_sizes/font_size = 13
 text = "0/10"
 vertical_alignment = 1
 
+[node name="Credits" type="Label" parent="Bar/Margin/Row"]
+custom_minimum_size = Vector2(52, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94902, 0.65098, 0.35294, 1)
+theme_override_font_sizes/font_size = 13
+text = "0c"
+vertical_alignment = 1
+
 [node name="SuspicionLabel" type="Label" parent="Bar/Margin/Row"]
 layout_mode = 2
 size_flags_horizontal = 10
