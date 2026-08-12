@@ -62,7 +62,15 @@ jobs:
   run:
     name: Build and launch on the simulator
     needs: export
-    runs-on: macos-15
+    # Intel, deliberately. Godot's official iOS templates ship a simulator
+    # library containing only x86_64 - the xcframework directory is named
+    # ios-arm64_x86_64-simulator but the archive inside holds one architecture.
+    # On an Apple Silicon runner every object is skipped and the link fails.
+    # This label is GitHub's last x86_64 macOS image and retires in August 2027;
+    # by then either Godot ships an arm64 simulator slice or this job converts
+    # the device library itself. Device builds are unaffected: those are arm64
+    # and cross-compile from any host, which is what the TestFlight job does.
+    runs-on: macos-15-intel
     steps:
       - name: Checkout
         uses: actions/checkout@v4
