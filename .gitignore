@@ -1,0 +1,36 @@
+# Godot 4 generated files
+.godot/
+/android/
+/build/
+/dist/
+*.translation
+
+# Godot editor leftovers
+export_presets.cfg.local
+*.tmp
+
+# Local toolchain cache (see tools/get_godot.sh)
+/.tools/
+
+# fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+*.mobileprovision
+*.p12
+*.cer
+AuthKey_*.p8
+
+# Ruby
+/vendor/bundle
+.bundle/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# OS noise
+.DS_Store
+Thumbs.db

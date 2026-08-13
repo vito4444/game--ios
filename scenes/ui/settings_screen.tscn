@@ -1,0 +1,104 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/settings_screen.gd" id="1_settings"]
+
+[node name="SettingsScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_settings")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05098, 0.10588, 0.16471, 1)
+
+[node name="Layout" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -160.0
+offset_top = -80.0
+offset_right = 160.0
+offset_bottom = 80.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="Layout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94902, 0.65098, 0.35294, 1)
+theme_override_font_sizes/font_size = 20
+text = "SETTINGS_TITLE"
+horizontal_alignment = 1
+
+[node name="Language" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Layout/Language"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.90980, 0.90196, 0.87451, 1)
+theme_override_font_sizes/font_size = 14
+text = "SETTINGS_LANGUAGE"
+vertical_alignment = 1
+
+[node name="Value" type="Button" parent="Layout/Language"]
+custom_minimum_size = Vector2(120, 34)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "English"
+
+[node name="Music" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Layout/Music"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.90980, 0.90196, 0.87451, 1)
+theme_override_font_sizes/font_size = 14
+text = "SETTINGS_MUSIC"
+vertical_alignment = 1
+
+[node name="Value" type="HSlider" parent="Layout/Music"]
+custom_minimum_size = Vector2(120, 34)
+layout_mode = 2
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.05
+value = 0.7
+
+[node name="Effects" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Layout/Effects"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.90980, 0.90196, 0.87451, 1)
+theme_override_font_sizes/font_size = 14
+text = "SETTINGS_EFFECTS"
+vertical_alignment = 1
+
+[node name="Value" type="HSlider" parent="Layout/Effects"]
+custom_minimum_size = Vector2(120, 34)
+layout_mode = 2
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.05
+value = 0.9
+
+[node name="Back" type="Button" parent="Layout"]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "SETTINGS_BACK"

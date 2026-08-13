@@ -1,0 +1,201 @@
+name: iOS Simulator
+
+# Builds and launches the game on a real iOS Simulator and captures what it
+# looks like. Nothing here is signed, so this needs no Apple Developer account
+# and no secrets - it runs on every push.
+#
+# This is the check that the TestFlight workflow cannot be: it proves the
+# engine starts on iOS, the touch layout lands inside the safe area, and the
+# fonts resolve, without waiting on an Apple membership.
+
+on:
+  push:
+    branches:
+      - main
+      - "cursor/**"
+  pull_request:
+  workflow_dispatch:
+
+env:
+  GODOT_VERSION: "4.7.1"
+  GODOT_RELEASE: "stable"
+  BUNDLE_ID: "com.example.deepcontract"
+
+jobs:
+  export:
+    name: Export the Xcode project
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache Godot toolchain
+        uses: actions/cache@v4
+        with:
+          path: .tools
+          key: godot-${{ runner.os }}-${{ env.GODOT_VERSION }}-${{ env.GODOT_RELEASE }}
+
+      - name: Cache export templates
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/godot/export_templates
+          key: godot-templates-${{ env.GODOT_VERSION }}-${{ env.GODOT_RELEASE }}
+
+      - name: Download Godot and export templates
+        run: tools/get_godot.sh --templates
+
+      - name: Import project
+        run: tools/check_import.sh
+
+      - name: Export for iOS
+        env:
+          IOS_BUILD_NUMBER: ${{ github.run_number }}
+        run: tools/export_ios.sh
+
+      - name: Upload the Xcode project
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcode-project-unsigned
+          path: build/ios
+          retention-days: 3
+
+  run:
+    name: Build and launch on the simulator
+    needs: export
+    # Intel, deliberately. Godot's official iOS templates ship a simulator
+    # library containing only x86_64 - the xcframework directory is named
+    # ios-arm64_x86_64-simulator but the archive inside holds one architecture.
+    # On an Apple Silicon runner every object is skipped and the link fails.
+    # This label is GitHub's last x86_64 macOS image and retires in August 2027;
+    # by then either Godot ships an arm64 simulator slice or this job converts
+    # the device library itself. Device builds are unaffected: those are arm64
+    # and cross-compile from any host, which is what the TestFlight job does.
+    runs-on: macos-15-intel
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download the Xcode project
+        uses: actions/download-artifact@v4
+        with:
+          name: xcode-project-unsigned
+          path: build/ios
+
+      - name: Pick a simulator
+        id: device
+        run: |
+          # The runner images rotate their iOS runtimes, so the device is
+          # chosen from what the machine actually has.
+          chosen=$(xcrun simctl list devices available --json \
+            | python3 tools/pick_simulator.py --kind iPhone)
+          {
+            echo "udid=$(echo "$chosen" | cut -f1)"
+            echo "name=$(echo "$chosen" | cut -f2)"
+            echo "runtime=$(echo "$chosen" | cut -f3)"
+          } >> "$GITHUB_OUTPUT"
+          echo "Selected $(echo "$chosen" | cut -f2) on $(echo "$chosen" | cut -f3)"
+
+      - name: Build for the simulator
+        run: |
+          set -o pipefail
+          # A generic destination, not the chosen device: the default Xcode on
+          # the runner carries an older SDK than the newest installed runtime,
+          # and naming a device from that runtime makes xcodebuild refuse the
+          # destination. Building against the SDK and running on a newer
+          # runtime is the normal forward-compatible case.
+          #
+          # x86_64 only. Xcode builds simulator slices for both architectures
+          # regardless of the host, and Godot's template has no arm64 simulator
+          # objects to link against.
+          xcodebuild \
+            -project build/ios/DeepContract.xcodeproj \
+            -scheme DeepContract \
+            -configuration Release \
+            -sdk iphonesimulator \
+            -destination "generic/platform=iOS Simulator" \
+            -derivedDataPath build/derived \
+            ARCHS=x86_64 \
+            EXCLUDED_ARCHS=arm64 \
+            ONLY_ACTIVE_ARCH=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build \
+            | tail -40
+
+      - name: Boot the simulator and install
+        run: |
+          xcrun simctl boot "${{ steps.device.outputs.udid }}" || true
+          xcrun simctl bootstatus "${{ steps.device.outputs.udid }}" -b
+          app=$(find build/derived/Build/Products -maxdepth 2 -name "*.app" | head -1)
+          echo "Installing $app"
+          xcrun simctl install "${{ steps.device.outputs.udid }}" "$app"
+
+      - name: Launch and capture the title screen
+        run: |
+          mkdir -p build/simulator-capture
+          udid="${{ steps.device.outputs.udid }}"
+          # Plain launch, not --console-pty: the latter stays in the foreground
+          # following the app's output and hangs the step.
+          xcrun simctl launch "$udid" "${{ env.BUNDLE_ID }}" | tee build/simulator-capture/launch.log
+          sleep 20
+          xcrun simctl io "$udid" screenshot build/simulator-capture/01-title.png
+
+      - name: Check the app is still running
+        run: |
+          # A simulated app runs as a process on the host, so the host's own
+          # process table is the reliable place to look. launchctl inside the
+          # simulator does not list it.
+          if ! pgrep -x DeepContract > /dev/null; then
+            echo "::error::The app is not running - it crashed or exited on launch."
+            xcrun simctl spawn "${{ steps.device.outputs.udid }}" log show --last 2m \
+              --predicate 'process == "DeepContract"' --style compact | tail -40 || true
+            exit 1
+          fi
+          echo "Running as pid $(pgrep -x DeepContract)."
+
+      - name: Capture the game itself
+        if: always()
+        run: |
+          udid="${{ steps.device.outputs.udid }}"
+          # simctl cannot tap, so the game is relaunched straight into a session.
+          xcrun simctl terminate "$udid" "${{ env.BUNDLE_ID }}" || true
+          sleep 2
+          # SIMCTL_CHILD_ prefixed variables reach the app as its own
+          # environment; command-line arguments do not survive the trip.
+          SIMCTL_CHILD_DEEPCONTRACT_AUTOSTART=1 \
+            xcrun simctl launch "$udid" "${{ env.BUNDLE_ID }}"
+          sleep 25
+          xcrun simctl io "$udid" screenshot build/simulator-capture/02-in-game.png
+
+      - name: Collect the diagnostics the game wrote
+        if: always()
+        run: |
+          udid="${{ steps.device.outputs.udid }}"
+          # Godot prints to stdout, which simctl does not capture unless it
+          # stays in the foreground, so the game writes the same lines to a
+          # file inside its own container.
+          container=$(xcrun simctl get_app_container "$udid" "${{ env.BUNDLE_ID }}" data)
+          echo "container: $container"
+          find "$container" -name "diagnostics.log" -exec cp {} \
+            build/simulator-capture/diagnostics.log \; 2>/dev/null || true
+          echo "--- diagnostics reported by the game ---"
+          cat build/simulator-capture/diagnostics.log 2>/dev/null || echo "(no diagnostics file)"
+
+      - name: Turn the captures upright
+        if: always()
+        run: |
+          # The game is landscape but a headless simulator has no accelerometer
+          # to rotate the frame buffer, so the capture comes out on its side.
+          for shot in build/simulator-capture/*.png; do
+            sips -r 270 "$shot" >/dev/null
+          done
+          sips -g pixelWidth -g pixelHeight build/simulator-capture/02-in-game.png
+
+      - name: Upload the capture
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: simulator-capture
+          path: build/simulator-capture
+          retention-days: 7

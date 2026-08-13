@@ -1,0 +1,158 @@
+{
+	"comment": "Everything the player can hold. `contraband` items fail a search and are confiscated on arrest. `icon` indexes the sheet produced by tools/gen_art.py.",
+	"items": [
+		{
+			"id": "ration",
+			"name": "Ration tin",
+			"description": "Galley issue. Keeps you upright through a double shift.",
+			"icon": "ration",
+			"contraband": false,
+			"value": 4,
+			"size": 1
+		},
+		{
+			"id": "scrap_metal",
+			"name": "Scrap plate",
+			"description": "Offcut from the sludge line. Nobody counts these.",
+			"icon": "component",
+			"contraband": false,
+			"value": 6,
+			"size": 1
+		},
+		{
+			"id": "wrench",
+			"name": "Deck wrench",
+			"description": "Signed out for shift work. Signed back in, usually.",
+			"icon": "wrench",
+			"contraband": false,
+			"value": 10,
+			"size": 1
+		},
+		{
+			"id": "oxygen_bottle",
+			"name": "Oxygen bottle",
+			"description": "Twenty minutes of breathing where there is none.",
+			"icon": "oxygen",
+			"contraband": false,
+			"value": 25,
+			"size": 2
+		},
+		{
+			"id": "torch_fuel",
+			"name": "Torch fuel",
+			"description": "Decanted from the welding bay. Explains itself badly.",
+			"icon": "torch",
+			"contraband": true,
+			"value": 30,
+			"size": 1
+		},
+		{
+			"id": "cutting_torch",
+			"name": "Cutting torch",
+			"description": "Opens hatches that were not meant to open.",
+			"icon": "torch",
+			"contraband": true,
+			"value": 90,
+			"size": 2
+		},
+		{
+			"id": "pry_bar",
+			"name": "Pry bar",
+			"description": "A wrench that stopped pretending.",
+			"icon": "wrench",
+			"contraband": true,
+			"value": 45,
+			"size": 2
+		},
+		{
+			"id": "nav_module",
+			"name": "Nav module",
+			"description": "Without it, a submersible surfaces somewhere random.",
+			"icon": "component",
+			"contraband": true,
+			"value": 120,
+			"size": 1
+		},
+		{
+			"id": "drive_housing",
+			"name": "Drive housing",
+			"description": "One of three. Heavy, and shaped like nothing else on the rig.",
+			"icon": "component",
+			"contraband": true,
+			"value": 150,
+			"size": 3
+		},
+		{
+			"id": "drive_impeller",
+			"name": "Drive impeller",
+			"description": "Two of three. Bent blades, still turns.",
+			"icon": "component",
+			"contraband": true,
+			"value": 150,
+			"size": 2
+		},
+		{
+			"id": "drive_core",
+			"name": "Drive core",
+			"description": "Three of three. Warm to the touch, which is not reassuring.",
+			"icon": "component",
+			"contraband": true,
+			"value": 180,
+			"size": 3
+		},
+		{
+			"id": "blank_docket",
+			"name": "Blank docket",
+			"description": "Rotation paperwork, unsigned. Worthless until it is not.",
+			"icon": "papers",
+			"contraband": false,
+			"value": 8,
+			"size": 1
+		},
+		{
+			"id": "forged_docket",
+			"name": "Forged rotation docket",
+			"description": "Says you are owed a berth on the supply sub.",
+			"icon": "papers",
+			"contraband": true,
+			"value": 200,
+			"size": 1
+		},
+		{
+			"id": "officer_uniform",
+			"name": "Security uniform",
+			"description": "One size too big and missing a name tag.",
+			"icon": "uniform",
+			"contraband": true,
+			"value": 110,
+			"size": 2
+		},
+		{
+			"id": "keycard",
+			"name": "Maintenance keycard",
+			"description": "Opens the workshop. Does not open anything interesting.",
+			"icon": "keycard",
+			"contraband": false,
+			"value": 20,
+			"size": 1
+		},
+		{
+			"id": "rebreather",
+			"name": "Patched rebreather",
+			"description": "Scrubs your own air back at you. Buys a long minute.",
+			"icon": "oxygen",
+			"contraband": true,
+			"value": 95,
+			"size": 2
+		},
+		{
+			"id": "door_shim",
+			"name": "Door shim",
+			"description": "Convinces a powered door it has already been authorised.",
+			"icon": "keycard",
+			"contraband": true,
+			"value": 60,
+			"size": 1
+		}
+	]
+}

@@ -1,0 +1,50 @@
+extends Control
+
+## Title screen. Deliberately thin: it exists so the game boots into something
+## other than a level, and so the App Store screenshot has a title card.
+
+const GAME_SCENE := "res://scenes/game.tscn"
+const SETTINGS_SCENE := "res://scenes/ui/settings_screen.tscn"
+
+## Skips the title screen when set. The simulator job uses it because simctl
+## cannot tap anything, and an environment variable is the only channel that
+## survives `simctl launch` - command-line arguments do not reach the app.
+const AUTOSTART_ENV := "DEEPCONTRACT_AUTOSTART"
+const AUTOSTART_FLAG := "--autostart"
+
+@onready var _play: Button = $Layout/Play
+@onready var _continue: Button = $Layout/Continue
+@onready var _settings: Button = $Layout/Settings
+
+
+func _ready() -> void:
+	if SelfTest.requested():
+		# Runs inside the packaged game and exits with a status, so CI can tell
+		# whether the export actually contains its data.
+		get_tree().quit(0 if SelfTest.run().is_empty() else 1)
+		return
+
+	Audio.start_ambience()
+	_play.pressed.connect(_start_new)
+	_continue.pressed.connect(_resume)
+	_settings.pressed.connect(_open_settings)
+
+	_continue.disabled = not SaveGame.exists()
+	(_continue if not _continue.disabled else _play).grab_focus()
+
+	if OS.get_environment(AUTOSTART_ENV) == "1" \
+			or OS.get_cmdline_args().has(AUTOSTART_FLAG):
+		call_deferred("_start_new")
+
+
+func _start_new() -> void:
+	SaveGame.delete()
+	get_tree().change_scene_to_file(GAME_SCENE)
+
+
+func _resume() -> void:
+	get_tree().change_scene_to_file(GAME_SCENE)
+
+
+func _open_settings() -> void:
+	get_tree().change_scene_to_file(SETTINGS_SCENE)

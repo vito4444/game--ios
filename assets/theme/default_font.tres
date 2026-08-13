@@ -1,0 +1,14 @@
+[gd_resource type="SystemFont" format=3]
+
+; The bundled default font has no CJK glyphs, and shipping a Noto CJK subset
+; would add megabytes to the download for one of two languages. Falling back to
+; the platform font gets PingFang on iOS at no cost.
+
+[resource]
+font_names = PackedStringArray("Sans-Serif")
+subpixel_positioning = 0
+multichannel_signed_distance_field = false
+allow_system_fallback = true
+force_autohinter = false
+hinting = 0
+antialiasing = 1

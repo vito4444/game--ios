@@ -1,0 +1,45 @@
+{
+	"comment": "Crafting recipes. `station` names the prop the player must be standing at; `technical` is the minimum Technical stat. Inputs are consumed, including duplicates.",
+	"recipes": [
+		{
+			"id": "pry_bar",
+			"output": "pry_bar",
+			"inputs": ["scrap_metal", "scrap_metal", "wrench"],
+			"station": "workbench",
+			"technical": 1,
+			"minutes": 20
+		},
+		{
+			"id": "door_shim",
+			"output": "door_shim",
+			"inputs": ["scrap_metal", "keycard"],
+			"station": "workbench",
+			"technical": 2,
+			"minutes": 30
+		},
+		{
+			"id": "cutting_torch",
+			"output": "cutting_torch",
+			"inputs": ["torch_fuel", "wrench", "scrap_metal"],
+			"station": "workbench",
+			"technical": 3,
+			"minutes": 45
+		},
+		{
+			"id": "rebreather",
+			"output": "rebreather",
+			"inputs": ["oxygen_bottle", "scrap_metal", "wrench"],
+			"station": "workbench",
+			"technical": 2,
+			"minutes": 40
+		},
+		{
+			"id": "forged_docket",
+			"output": "forged_docket",
+			"inputs": ["blank_docket", "keycard"],
+			"station": "technical_terminal",
+			"technical": 4,
+			"minutes": 60
+		}
+	]
+}

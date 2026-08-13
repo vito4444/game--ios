@@ -1,0 +1,27 @@
+{
+	"comment": "Ways off the rig. Each route names where it is attempted, what must be carried, what the attempt consumes, and an optional time window in minutes past midnight.",
+	"routes": [
+		{
+			"id": "submersible",
+			"name": "The submersible",
+			"summary": "Rebuild the hangar's one-seat sub and cut your way out to it.",
+			"zone": "hangar",
+			"prop": "hangar_door",
+			"requires": ["drive_housing", "drive_impeller", "drive_core", "cutting_torch"],
+			"consumes": ["cutting_torch"],
+			"window_from": -1,
+			"window_to": -1
+		},
+		{
+			"id": "supply_sub",
+			"name": "The supply sub",
+			"summary": "Walk onto the resupply boat in a uniform, holding paperwork that says you are owed a berth.",
+			"zone": "moon_pool",
+			"prop": "sub_dock",
+			"requires": ["officer_uniform", "forged_docket"],
+			"consumes": ["forged_docket"],
+			"window_from": 120,
+			"window_to": 180
+		}
+	]
+}

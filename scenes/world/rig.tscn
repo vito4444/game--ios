@@ -1,0 +1,23 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/rig_world.gd" id="1_rig"]
+
+[node name="Rig" type="Node2D"]
+script = ExtResource("1_rig")
+
+[node name="Ground" type="TileMapLayer" parent="."]
+
+[node name="YSort" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Props" type="TileMapLayer" parent="YSort"]
+y_sort_enabled = true
+
+[node name="Actors" type="Node2D" parent="YSort"]
+y_sort_enabled = true
+
+[node name="Camera" type="Camera2D" parent="."]
+
+[node name="Darkness" type="CanvasModulate" parent="."]
+visible = false
+color = Color(0.29804, 0.36078, 0.44706, 1)

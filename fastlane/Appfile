@@ -1,0 +1,3 @@
+# Filled from the environment so the repository carries no account details.
+app_identifier(ENV.fetch("IOS_BUNDLE_ID", "com.example.deepcontract"))
+team_id(ENV["APPLE_TEAM_ID"])

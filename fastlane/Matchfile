@@ -1,0 +1,7 @@
+# match keeps the signing certificate and provisioning profile in a private git
+# repository, encrypted with MATCH_PASSWORD. Nothing here is secret by itself.
+git_url(ENV["MATCH_GIT_URL"])
+storage_mode("git")
+type("appstore")
+app_identifier([ENV.fetch("IOS_BUNDLE_ID", "com.example.deepcontract")])
+readonly(true)
