@@ -97,9 +97,12 @@ func _run(output_dir: String, locale: String) -> void:
 		return
 
 	var panel := game.get_node("InteractionPanel")
+	var hud := game.get_node("Hud")
 	for scenario in SCENARIOS:
 		panel.close()
 		_stage(rig, scenario)
+		# Alerts from the time that was skipped over are not part of the moment.
+		hud.clear_notice()
 		for _frame in WARMUP_FRAMES:
 			await process_frame
 		if scenario.get("interact", false):
@@ -132,5 +135,10 @@ func _stage(rig: Node, scenario: Dictionary) -> void:
 		rig.session.oxygen.tick(scenario["drain_air"], true)
 	if scenario.get("blackout", false):
 		rig.session.blackout.begin()
+	else:
+		# Skipping to a time of day crosses 02:00 and 14:00, so a scenario that
+		# did not ask for a blackout would otherwise inherit one and render
+		# every later capture dimmed.
+		rig.session.blackout.tick(Blackout.DURATION_SECONDS + 1.0)
 	for item in scenario.get("give", []):
 		rig.session.inventory.add(StringName(item))

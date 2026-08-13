@@ -84,6 +84,14 @@ func _update_prompt() -> void:
 		_prompt.text = tr(target.prompt())
 
 
+## Hides whatever notice is showing. Used by the capture tool, which stages a
+## moment rather than playing up to it and should not inherit alerts from the
+## time it skipped over.
+func clear_notice() -> void:
+	_notice_until = 0.0
+	_alert.visible = false
+
+
 func _show_notice(text: String) -> void:
 	_alert.text = text
 	_alert.visible = true
